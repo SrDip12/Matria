@@ -1,7 +1,7 @@
 "use client";
 
 import { Franja42 } from "@/components/Franja42";
-import { TONO_RIESGO } from "@/lib/riesgo";
+import { CLASE_TAG } from "@/lib/riesgo";
 import { DIAS_PUERPERIO, type FilaPanel, type Mensaje, type NivelRiesgo } from "@/lib/types";
 
 /**
@@ -37,46 +37,48 @@ export function MiEvolucion({ fila, mensajes }: { fila: FilaPanel | null; mensaj
   return (
     <div className="flex flex-col gap-4">
       <section className="card flex flex-col gap-3 p-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-sm font-medium">Cómo has estado</h2>
-          <span className="tabular text-xs" style={{ color: "var(--color-text-suave)" }}>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="etiqueta">Cómo has estado</h2>
+          <span className="tabular text-xs tenue">
             Día {puerpera.dia_puerperio} de {DIAS_PUERPERIO}
           </span>
         </div>
 
         <Franja42 franja={franja} diaActual={puerpera.dia_puerperio} />
 
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: "var(--color-text-suave)" }}>
-          <span className="tabular">{conContacto} días en que me escribiste</span>
-          <span className="tabular">{conSenal} con alguna señal para tu matrona</span>
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs suave">
+          <span className="tabular">
+            <span className="font-medium" style={{ color: "var(--color-titulo)" }}>
+              {conContacto}
+            </span>{" "}
+            días en que me escribiste
+          </span>
+          <span className="tabular">
+            <span className="font-medium" style={{ color: "var(--color-titulo)" }}>
+              {conSenal}
+            </span>{" "}
+            con alguna señal para tu matrona
+          </span>
         </div>
       </section>
 
       {dias.length === 0 ? (
-        <p className="text-sm" style={{ color: "var(--color-text-suave)" }}>
+        <p className="sin-datos leading-relaxed text-pretty">
           Todavía no hay días registrados. Cuéntame en el chat cómo estás y acá vas a ir viendo tu
           recorrido de estas semanas.
         </p>
       ) : (
         <ol className="flex flex-col gap-2">
           {dias.map(({ dia, nivel }) => {
-            const tono = TONO_RIESGO[nivel];
             const dicho = suyos.filter((m) => m.dia_puerperio === dia).at(-1);
             return (
-              <li key={dia} className="card flex flex-col gap-1.5 p-3">
+              <li key={dia} className="card flex flex-col gap-2 p-3.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="tabular text-sm font-medium">Día {dia}</span>
-                  <span
-                    className="tag"
-                    style={{ background: tono.fondo, color: tono.texto, border: `1px solid ${tono.borde}` }}
-                  >
-                    {ETIQUETA[nivel]}
-                  </span>
+                  <span className="tabular text-[13.5px] font-medium">Día {dia}</span>
+                  <span className={`${CLASE_TAG[nivel]} ml-auto`}>{ETIQUETA[nivel]}</span>
                 </div>
                 {dicho && (
-                  <p className="text-sm" style={{ color: "var(--color-text-suave)" }}>
-                    “{dicho.texto}”
-                  </p>
+                  <p className="text-[13px] leading-relaxed text-pretty suave">“{dicho.texto}”</p>
                 )}
               </li>
             );

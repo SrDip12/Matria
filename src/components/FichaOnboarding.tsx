@@ -329,7 +329,8 @@ export function FichaOnboarding({ onListo }: Props) {
   const finDelHilo = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    finDelHilo.current?.scrollIntoView({ behavior: "smooth" });
+    const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    finDelHilo.current?.scrollIntoView({ behavior: quieto ? "auto" : "smooth", block: "end" });
   }, [hechas.length, enviando]);
 
   /** La siguiente pregunta que corresponde hacer, saltando las que no aplican. */
@@ -404,18 +405,38 @@ export function FichaOnboarding({ onListo }: Props) {
   const restantes = PREGUNTAS.slice(indice).filter((p) => !p.si || p.si(respuestas)).length;
 
   return (
-    <section className="mx-auto flex h-full w-full max-w-2xl flex-col">
+    <section className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-col">
       <header
-        className="flex items-baseline gap-2 border-b px-4 py-3 sm:px-6"
-        style={{ borderColor: "var(--color-border)" }}
+        className="flex shrink-0 flex-col gap-2 border-b px-4 py-4 sm:px-6"
+        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
-        <h1 className="text-base font-medium">Antes de empezar</h1>
-        <span className="tabular ml-auto text-xs" style={{ color: "var(--color-text-suave)" }}>
-          {actual ? `${hechas.length + 1} de ${PREGUNTAS.length}` : "Listo"}
-        </span>
+        <div className="flex flex-wrap items-baseline gap-x-3">
+          <p className="etiqueta">Ficha de ingreso</p>
+          <h1 className="subtitulo">Antes de empezar</h1>
+          <span className="tabular ml-auto text-xs tenue">
+            {actual ? `${hechas.length + 1} de ${PREGUNTAS.length}` : "Listo"}
+          </span>
+        </div>
+        <div
+          className="h-1 overflow-hidden rounded-[var(--radius-pill)]"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={PREGUNTAS.length}
+          aria-valuenow={hechas.length}
+          aria-label="Avance de la ficha de ingreso"
+          style={{ background: "var(--color-linea)" }}
+        >
+          <div
+            className="h-full rounded-[var(--radius-pill)] transition-[width] duration-200"
+            style={{
+              width: `${Math.round((hechas.length / PREGUNTAS.length) * 100)}%`,
+              background: "var(--marca-600)",
+            }}
+          />
+        </div>
       </header>
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-4 sm:px-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-4 sm:px-6">
         <Burbuja de="sistema">{SALUDO}</Burbuja>
         <Burbuja de="sistema">{SALUDO_2}</Burbuja>
 
@@ -436,8 +457,13 @@ export function FichaOnboarding({ onListo }: Props) {
 
         {error && (
           <p
-            className="self-start rounded-[var(--radius-md)] border px-3.5 py-2.5 text-sm"
-            style={{ borderColor: "#B3261E", color: "#B3261E" }}
+            role="alert"
+            className="self-start rounded-[var(--radius-md)] border px-3.5 py-2.5 text-[13px] text-pretty"
+            style={{
+              borderColor: "var(--riesgo-alto-borde)",
+              background: "var(--riesgo-alto-fondo)",
+              color: "var(--riesgo-alto-tinta)",
+            }}
           >
             No pude guardar tu ficha: {error}.
           </p>
@@ -447,8 +473,8 @@ export function FichaOnboarding({ onListo }: Props) {
       </div>
 
       <div
-        className="flex flex-col gap-2 border-t px-4 py-3 sm:px-6"
-        style={{ borderColor: "var(--color-border)" }}
+        className="flex shrink-0 flex-col gap-2.5 border-t px-4 py-4 sm:px-6"
+        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
         {actual ? (
           <>
@@ -461,50 +487,56 @@ export function FichaOnboarding({ onListo }: Props) {
                     onClick={() =>
                       responder(actual.tipo === "siNo" ? opcion.id === "si" : opcion.id)
                     }
-                    className="rounded-[var(--radius-pill)] border px-3 py-1.5 text-sm"
-                    style={{
-                      borderColor: "var(--color-border)",
-                      background: "var(--color-surface)",
-                    }}
+                    className="chip !rounded-[var(--radius-pill)] !px-3.5 !py-2 !text-[13.5px]"
                   >
                     {opcion.etiqueta}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="flex gap-2">
-                <input
-                  autoFocus
-                  key={actual.id}
-                  className="input flex-1"
-                  type={
-                    actual.tipo === "numero" ? "number" : actual.tipo === "fecha" ? "date" : "text"
-                  }
-                  step={actual.id === "peso_kg" ? "0.1" : undefined}
-                  placeholder={actual.ejemplo ? `Por ejemplo: ${actual.ejemplo}` : undefined}
-                  value={borrador}
-                  onChange={(e) => setBorrador(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") responderTexto();
-                  }}
-                />
-                <button
-                  className="btn btn-primary"
-                  disabled={!borrador.trim()}
-                  onClick={responderTexto}
-                >
+              <form
+                className="flex items-end gap-2"
+                autoComplete="off"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  responderTexto();
+                }}
+              >
+                <label className="min-w-0 flex-1">
+                  <span className="sr-only">{actual.texto}</span>
+                  <input
+                    autoFocus
+                    key={actual.id}
+                    className="input"
+                    name={actual.id}
+                    autoComplete="off"
+                    spellCheck={false}
+                    inputMode={actual.tipo === "numero" ? "decimal" : undefined}
+                    type={
+                      actual.tipo === "numero"
+                        ? "number"
+                        : actual.tipo === "fecha"
+                          ? "date"
+                          : "text"
+                    }
+                    step={actual.id === "peso_kg" ? "0.1" : undefined}
+                    placeholder={actual.ejemplo ? `Por ejemplo: ${actual.ejemplo}…` : undefined}
+                    value={borrador}
+                    onChange={(e) => setBorrador(e.target.value)}
+                  />
+                </label>
+                <button type="submit" className="btn btn-primary" disabled={!borrador.trim()}>
                   Enviar
                 </button>
-              </div>
+              </form>
             )}
 
             {!actual.obligatoria && (
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <button
                   type="button"
                   onClick={() => responder(null)}
-                  className="text-xs underline"
-                  style={{ color: "var(--color-text-suave)" }}
+                  className="text-[11px] underline decoration-[var(--color-border)] underline-offset-2 tenue hover:decoration-[var(--marca-600)]"
                 >
                   Prefiero no responder
                 </button>
@@ -512,8 +544,7 @@ export function FichaOnboarding({ onListo }: Props) {
                   <button
                     type="button"
                     onClick={() => setIndice(PREGUNTAS.length)}
-                    className="text-xs underline"
-                    style={{ color: "var(--color-text-suave)" }}
+                    className="text-[11px] underline decoration-[var(--color-border)] underline-offset-2 tenue hover:decoration-[var(--marca-600)]"
                   >
                     Saltar las {restantes} que quedan y empezar
                   </button>
