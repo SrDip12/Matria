@@ -1,0 +1,17 @@
+interface LogoMatriaProps {
+  fill: string;
+  size?: number;
+}
+
+/** La silueta: mujer de perfil, guata, un punto adentro. Nunca rotada ni con contorno. */
+export function LogoMatria({ fill, size = 32 }: LogoMatriaProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 120" fill="none" aria-hidden>
+      <path
+        d="M 58 34 C 68 40, 70 48, 66 56 C 82 60, 94 68, 92 82 C 90 98, 78 106, 66 108 L 42 108 C 34 86, 34 58, 44 36 Z"
+        fill={fill}
+      />
+      <circle cx="50" cy="18" r="12" fill={fill} />
+    </svg>
+  );
+}
