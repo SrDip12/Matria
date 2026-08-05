@@ -491,7 +491,9 @@ const TEXTOS_BENIGNOS = [
   "Me duele un poco la espalda, nada más. Sin fiebre.",
   "Ando con sueño no más, pero tranquila. Sin sangrado raro.",
   "La herida se ve bien, seca y sin dolor.",
-  "Un poco sensible de ánimo, pero nada grave. Con apoyo en la casa.",
+  // Decía "un poco sensible de ánimo": el agente lo leía como §7.1 y quedaba en medio, contra
+  // el "bajo" que le pone el seed. Un relato etiquetado benigno no puede rozar salud mental.
+  "Cansada por las noches, pero de buen ánimo. Con harto apoyo en la casa.",
 ];
 
 const PREGUNTAS_SISTEMA = [
