@@ -68,11 +68,14 @@ deriva cuando deriva**, y la respuesta tiene que ser la misma que está acá.
 > El agente escala a la matrona cuando los hallazgos extraídos del relato cumplen un umbral
 > definido en el protocolo clínico, citando la sección que lo justifica. Tres reglas absolutas
 > están codificadas fuera del modelo y no admiten excepción: cualquier señal de ideación
-> autolítica escala a riesgo alto, cualquier sospecha de evento tromboembólico escala a riesgo
-> alto, y ante duda entre dos niveles el sistema siempre elige el más alto.
+> autolítica escala a riesgo alto (§7.2), cualquier señal compatible con evento tromboembólico
+> escala a riesgo alto (§6), y un antecedente de trastorno hipertensivo del embarazo junto a
+> cualquier señal de §2 —aunque sea una sola y sin cifra de presión— escala directo a riesgo
+> alto (§8, excepción única).
 >
-> El criterio es asimétrico a propósito: el costo de una alerta de más es un minuto de la
-> matrona; el costo de una alerta de menos es un reingreso.
+> Aparte de esas tres, el criterio del modelo también es asimétrico a propósito: ante duda
+> entre dos niveles, siempre elige el más alto. El costo de una alerta de más es un minuto de
+> la matrona; el costo de una de menos es un reingreso.
 
 _Vale: agrega o corrige los umbrales concretos por condición. Mientras más específico, mejor
 puntúa y mejor se defiende._

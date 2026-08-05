@@ -82,10 +82,13 @@ porque el jurado tiene gente del MINSAL y se nota.
 ### **"¿Por qué deriva cuando deriva?"** — la pregunta que decide el criterio
 
 El agente escala cuando los hallazgos extraídos del relato cumplen un umbral del protocolo, y
-cita la sección que lo justifica. Hay tres reglas absolutas codificadas fuera del modelo:
-ideación autolítica escala a alto, sospecha de tromboembolismo escala a alto, y ante duda
-entre dos niveles siempre gana el más alto. El criterio es asimétrico a propósito: una alerta
-de más cuesta un minuto de la matrona, una de menos cuesta un reingreso.
+cita la sección que lo justifica. Tres reglas absolutas están codificadas fuera del modelo, no
+dependen de que el modelo las note: ideación autolítica escala a alto (§7.2), sospecha de
+tromboembolismo escala a alto (§6), y antecedente de trastorno hipertensivo del embarazo junto
+a cualquier señal de §2 —una sola, sin cifra de presión— escala a alto (§8, excepción única).
+Aparte de eso, el criterio del modelo es asimétrico a propósito: ante duda entre dos niveles,
+siempre gana el más alto. Una alerta de más cuesta un minuto de la matrona, una de menos
+cuesta un reingreso.
 
 Vale debe poder dar un umbral concreto de memoria. Ej: fiebre sobre X grados desde el día Y
 con loquios de mal olor.
