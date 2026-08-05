@@ -377,6 +377,30 @@ if (SECCIONES.size === 0) {
  * ══════════════════════════════════════════════════════════════════════════════
  */
 export const EJEMPLOS_HABLA_REAL = `
+- "me huele feo abajo" → loquios_mal_olor: true
+- "tengo un olor raro" → loquios_mal_olor: true
+- "me duele la guata abajo" → dolor_abdominal: true
+- "dolor en la boca del estómago" → dolor_epigastrico: true
+- "estoy hirviendo" → fiebre_referida: true (referida, sin cifra)
+- "ando afiebrada" → fiebre_referida: true (referida, sin cifra)
+- "tengo las pechugas duras" → mastalgia: true (congestión sola, sin eritema ni fiebre: no es
+  mastitis todavía, ver §5.1)
+- "el pecho como piedra" → mastalgia: true
+- "me está partiendo la cabeza" → cefalea_intensa: true
+- "lo tengo colorado" (mama) → eritema_mamario: true
+- "estoy botando mucha sangre" → sangrado_aumentado: true
+- "me está bajando harto" → sangrado_aumentado: true
+- "se me llena la toalla" → sangrado_aumentado: true
+- "ando bajoneada" → animo_bajo: true
+- "estoy triste todo el día" → animo_bajo: true
+- "veo lucecitas" → alteracion_visual: true
+- "veo borroso" → alteracion_visual: true
+- "veo puntitos negros" → alteracion_visual: true
+- "me falta el aire" → disnea: true
+- "me ahogo" → disnea: true
+- "me duele cuando le doy pecho" → dificultad_lactancia: null (un solo criterio de los cuatro
+  de §5.2 no basta para true; ver "null no es false" más arriba)
+- "no se prende bien" → dificultad_lactancia: null
 `.trim();
 
 const REGLAS = `
