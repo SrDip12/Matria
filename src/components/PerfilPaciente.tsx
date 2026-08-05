@@ -1,14 +1,15 @@
 "use client";
 
+import { fecha, ETIQUETA_PARTO, partirEtiqueta } from "@/lib/formato";
 import { ETIQUETA_HABITO, imc, type Puerpera } from "@/lib/types";
 import { factoresRiesgo, antecedentesRelevantes } from "@/lib/factores";
 
 /**
  * Lee la ficha completa de una puérpera: la básica y todo el onboarding.
  *
- * Lo usan las dos vistas —"mi perfil" de la paciente y el resumen por paciente de la matrona—
- * porque son la misma información leída por dos personas distintas. `clinico` cambia lo que se
- * muestra: la matrona ve además los factores de §8 que el agente está ponderando.
+ * Lo usan las dos vistas —"mi ficha" de la paciente y la ficha del caso de la matrona— porque
+ * son la misma información leída por dos personas distintas. `clinico` cambia lo que se muestra:
+ * la matrona ve además los factores de §8 que el agente está ponderando.
  *
  * Un campo sin responder se muestra como "no preguntado", nunca como "no". Es la misma regla
  * que rige los hallazgos del agente y acá importa igual: la matrona no puede leer un blanco
@@ -21,13 +22,11 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: React.ReactNode })
   const vacio =
     valor === null || valor === undefined || valor === "" || (Array.isArray(valor) && !valor.length);
   return (
-    <div className="flex flex-col gap-0.5 py-1">
-      <span className="text-xs" style={{ color: "var(--color-text-suave)" }}>
-        {etiqueta}
-      </span>
-      <span className="text-sm" style={vacio ? { color: "var(--color-text-suave)" } : undefined}>
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <dt className="etiqueta-tenue">{etiqueta}</dt>
+      <dd className={`text-[13.5px] leading-snug break-words text-pretty ${vacio ? "tenue" : ""}`}>
         {vacio ? SIN_DATO : Array.isArray(valor) ? valor.join(", ") : valor}
-      </span>
+      </dd>
     </div>
   );
 }
@@ -36,13 +35,27 @@ const siNo = (v: boolean | null) => (v === null ? null : v ? "Sí" : "No");
 
 function Bloque({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section
-      className="rounded-[var(--radius-md)] border p-3"
-      style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
-    >
-      <h3 className="mb-1 text-sm font-medium">{titulo}</h3>
-      <div className="grid gap-x-4 sm:grid-cols-2">{children}</div>
+    <section className="card p-4">
+      <h3 className="etiqueta mb-3">{titulo}</h3>
+      <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">{children}</dl>
     </section>
+  );
+}
+
+/** Lista de una línea por ítem. La usan los factores de §8 y los otros antecedentes. */
+function Notas({ items }: { items: string[] }) {
+  return (
+    <ul className="flex flex-col gap-1.5">
+      {items.map((nota) => (
+        <li
+          key={nota}
+          className="border-l-2 pl-2.5 text-[13px] leading-relaxed text-pretty"
+          style={{ borderColor: "var(--color-border)" }}
+        >
+          {nota}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -57,25 +70,42 @@ export function PerfilPaciente({
   const indice = imc(f);
   const factores = clinico ? factoresRiesgo(puerpera) : [];
   const otros = clinico ? antecedentesRelevantes(puerpera) : [];
+  const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
 
   return (
     <div className="flex flex-col gap-3">
-      <Bloque titulo="Ficha básica">
-        <Dato etiqueta="Nombre" valor={puerpera.nombre} />
-        <Dato etiqueta="Edad" valor={`${puerpera.edad} años`} />
-        <Dato etiqueta="Día de puerperio" valor={`Día ${puerpera.dia_puerperio} de 42`} />
-        <Dato
-          etiqueta="Tipo de parto"
-          valor={puerpera.tipo_parto === "cesarea" ? "Cesárea" : "Vaginal"}
-        />
-        <Dato etiqueta="Fecha del parto" valor={puerpera.fecha_parto} />
-        <Dato etiqueta="Establecimiento" valor={puerpera.establecimiento} />
-      </Bloque>
+      <section className="card p-4">
+        <div className="mb-3 flex flex-wrap items-baseline gap-x-2.5">
+          <h3 className="subtitulo truncate">{etiqueta}</h3>
+          {codigo && (
+            <span className="tabular text-[11px] tenue" translate="no">
+              {codigo}
+            </span>
+          )}
+          <span className="tabular ml-auto text-[11px] tenue">
+            día {puerpera.dia_puerperio} de 42
+          </span>
+        </div>
+        <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <Dato etiqueta="Edad" valor={`${puerpera.edad} años`} />
+          <Dato
+            etiqueta="Tipo de parto"
+            valor={<span className="capitalize">{ETIQUETA_PARTO[puerpera.tipo_parto]}</span>}
+          />
+          <Dato etiqueta="Fecha del parto" valor={fecha(puerpera.fecha_parto)} />
+          <Dato etiqueta="Establecimiento" valor={puerpera.establecimiento} />
+          <Dato etiqueta="Región" valor={puerpera.region} />
+          <Dato
+            etiqueta="Ficha de ingreso"
+            valor={f?.completada_at ? `Completada el ${fecha(f.completada_at)}` : null}
+          />
+        </dl>
+      </section>
 
       {!f ? (
         <p
-          className="rounded-[var(--radius-md)] border border-dashed p-3 text-sm"
-          style={{ borderColor: "var(--color-border)", color: "var(--color-text-suave)" }}
+          className="rounded-[var(--radius-lg)] border border-dashed p-4 text-[13px] leading-relaxed text-pretty tenue"
+          style={{ borderColor: "var(--color-border)" }}
         >
           Sin ficha de ingreso. Esta puérpera viene de la cohorte sembrada y nadie la entrevistó:
           el agente la evalúa solo con la ficha básica.
@@ -83,24 +113,13 @@ export function PerfilPaciente({
       ) : (
         <>
           {clinico && factores.length > 0 && (
-            <section
-              className="rounded-[var(--radius-md)] border p-3"
-              style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
-            >
-              <h3 className="mb-1 text-sm font-medium">
-                Factores que modifican el riesgo basal (§8)
-              </h3>
-              <p className="mb-2 text-xs" style={{ color: "var(--color-text-suave)" }}>
+            <section className="card p-4">
+              <h3 className="etiqueta">Factores que modifican el riesgo basal · §8</h3>
+              <p className="mt-1.5 mb-3 text-xs leading-relaxed text-pretty tenue">
                 No cambian la categoría del hallazgo: priorizan dentro de ella. Esto es lo que el
                 agente pondera en cada mensaje.
               </p>
-              <ul className="flex flex-col gap-1">
-                {factores.map((factor) => (
-                  <li key={factor} className="text-sm">
-                    · {factor}
-                  </li>
-                ))}
-              </ul>
+              <Notas items={factores} />
             </section>
           )}
 
@@ -122,7 +141,7 @@ export function PerfilPaciente({
 
           <Bloque titulo="Antecedentes ginecológicos">
             <Dato etiqueta="Antecedentes" valor={f.antecedentes_ginecologicos} />
-            <Dato etiqueta="Fecha de última regla" valor={f.fecha_ultima_regla} />
+            <Dato etiqueta="Fecha de última regla" valor={fecha(f.fecha_ultima_regla)} />
             <Dato etiqueta="Partos previos" valor={f.paridad} />
           </Bloque>
 
@@ -140,27 +159,32 @@ export function PerfilPaciente({
               <Dato etiqueta="Episiotomía" valor={siNo(f.episiotomia)} />
             )}
             <Dato etiqueta="Apego inmediato" valor={siNo(f.apego_inmediato)} />
-            <Dato etiqueta="Inicio de lactancia" valor={f.fecha_inicio_lactancia} />
+            <Dato etiqueta="Inicio de lactancia" valor={fecha(f.fecha_inicio_lactancia)} />
           </Bloque>
 
           <Bloque titulo="Contacto de emergencia">
             <Dato etiqueta="Nombre" valor={f.contacto_emergencia_nombre} />
             <Dato etiqueta="Relación" valor={f.contacto_emergencia_relacion} />
-            <Dato etiqueta="Teléfono" valor={f.contacto_emergencia_telefono} />
+            <Dato
+              etiqueta="Teléfono"
+              valor={
+                f.contacto_emergencia_telefono ? (
+                  <a
+                    className="underline decoration-[var(--marca-200)] underline-offset-2 hover:decoration-[var(--marca-600)]"
+                    href={`tel:${f.contacto_emergencia_telefono}`}
+                  >
+                    {f.contacto_emergencia_telefono}
+                  </a>
+                ) : null
+              }
+            />
           </Bloque>
 
           {clinico && otros.length > 0 && (
-            <Bloque titulo="Otros antecedentes que el agente considera">
-              <div className="sm:col-span-2">
-                <ul className="flex flex-col gap-1">
-                  {otros.map((nota) => (
-                    <li key={nota} className="text-sm">
-                      · {nota}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Bloque>
+            <section className="card p-4">
+              <h3 className="etiqueta mb-3">Otros antecedentes que el agente considera</h3>
+              <Notas items={otros} />
+            </section>
           )}
         </>
       )}

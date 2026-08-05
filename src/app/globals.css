@@ -1,20 +1,61 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+/**
+ * Sistema visual de Matria.
+ *
+ * La fuente de verdad es `Design System/Design System Matria.dc.html`. Lo que hay acá es esa
+ * hoja llevada a tokens y clases: misma escala tipográfica, mismos colores, mismos radios.
+ * Si algo se ve distinto en el panel y en el design system, manda el design system.
+ *
+ * Dos reglas que gobiernan todo lo demás:
+ *   1. La jerarquía se hace por tamaño y aire, no por negrita.
+ *   2. El color es del riesgo. Si un elemento no comunica riesgo, es tinta o es gris.
+ */
+
 :root {
   --color-bg: #f2ece9;
   --color-surface: #fbf8f6;
+  --color-surface-alta: #ffffff;
   --color-border: #e2d8d4;
+  /* Divisor interno de listas: más suave que el borde de una tarjeta, para que una tabla
+     larga no se lea como una reja. */
+  --color-linea: #ede4e1;
+  --color-hover: #efe7e4;
+
+  --color-titulo: #3a1a20;
   --color-text: #2a1418;
   --color-text-suave: #6e555a;
+  /* Tinta de las etiquetas en versalitas y de los metadatos. Un escalón bajo el secundario. */
+  --color-tenue: #9a7f84;
+
   --marca-900: #5c0a18;
   --marca-700: #a50b20;
   --marca-600: #c1121f;
   --marca-500: #e01e37;
   --marca-300: #ff6b82;
+  --marca-200: #e8b3ba;
   --marca-100: #ffd9df;
+  --marca-50: #fdecee;
+
+  --radius-sm: 4px;
   --radius-md: 8px;
+  --radius-lg: 10px;
   --radius-pill: 999px;
+
+  /* Espejo en CSS de TONO_RIESGO (src/lib/riesgo.ts), que manda del lado de TypeScript. */
+  --riesgo-alto: #c1121f;
+  --riesgo-alto-tinta: #8a0a17;
+  --riesgo-alto-fondo: #fdecee;
+  --riesgo-alto-borde: #f5c2c9;
+  --riesgo-medio: #c97a05;
+  --riesgo-medio-tinta: #8a5403;
+  --riesgo-medio-fondo: #fdf4e3;
+  --riesgo-medio-borde: #f0dcb4;
+  --riesgo-bajo: #1f8a5b;
+  --riesgo-bajo-tinta: #145c3d;
+  --riesgo-bajo-fondo: #edf7f1;
+  --riesgo-bajo-borde: #c7e3d4;
 }
 
 @theme inline {
@@ -28,27 +69,122 @@ body {
   height: 100%;
 }
 
+html {
+  color-scheme: light;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+[role="tab"] {
+  touch-action: manipulation;
+}
+
+/* --- Escala tipográfica ------------------------------------------------- */
+
+.display {
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-titulo);
+  text-wrap: balance;
+}
+
+.titulo {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-titulo);
+  text-wrap: balance;
+}
+
+.subtitulo {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--color-titulo);
+  text-wrap: balance;
+}
+
+/* Etiqueta en versalitas. Es la firma tipográfica del sistema: nombra una zona sin competir
+   con el contenido. Nunca se usa para texto que haya que leer de corrido. */
+.etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--color-text-suave);
+}
+
+.etiqueta-tenue {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--color-tenue);
+}
+
+/* Cifra clínica. Toma el color del riesgo cuando lo comunica; si no, queda en tinta. */
+.cifra {
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-titulo);
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-:focus-visible {
-  outline: 2px solid var(--marca-600);
-  outline-offset: 2px;
+.tenue {
+  color: var(--color-tenue);
 }
+
+.suave {
+  color: var(--color-text-suave);
+}
+
+/* --- Superficies --------------------------------------------------------- */
 
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
 }
+
+.card-alta {
+  background: var(--color-surface-alta);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+/* Riel de riesgo: la barra de 4px que abre cada fila del panel priorizado. */
+.riel {
+  width: 4px;
+  border-radius: 2px;
+  flex: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--marca-500);
+  outline-offset: 1px;
+}
+
+/* --- Botones ------------------------------------------------------------- */
 
 .btn {
   display: inline-flex;
@@ -59,8 +195,10 @@ body {
   font-family: inherit;
   font-weight: 500;
   font-size: 13px;
+  line-height: 1.2;
   border-radius: var(--radius-md);
   padding: 9px 16px;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 .btn:disabled {
   opacity: 0.45;
@@ -72,18 +210,18 @@ body {
   border: 1px solid var(--marca-600);
   color: #ffffff;
 }
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: var(--marca-700);
   border-color: var(--marca-700);
 }
 
 .btn-secondary {
   background: transparent;
-  border: 1px solid var(--marca-300);
+  border: 1px solid var(--marca-200);
   color: var(--marca-600);
 }
-.btn-secondary:hover {
-  background: #fdecee;
+.btn-secondary:hover:not(:disabled) {
+  background: var(--marca-50);
 }
 
 .btn-ghost {
@@ -92,33 +230,138 @@ body {
   color: var(--color-text-suave);
   padding: 9px 12px;
 }
-.btn-ghost:hover {
-  background: var(--color-border);
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-.input {
-  min-height: 36px;
-  padding: 6px 10px;
-  font: inherit;
-  font-size: 14px;
-  color: var(--color-text);
-  background: #ffffff;
+/* Chip de filtro y pestaña. El estado activo lo lleva el atributo ARIA, no una clase paralela:
+   así no hay manera de pintarlo activo y dejarlo mudo para un lector de pantalla. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-text-suave);
+  background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  padding: 6px 11px;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.chip:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.chip[aria-pressed="true"],
+.chip[aria-selected="true"] {
+  background: var(--marca-600);
+  border-color: var(--marca-600);
+  color: #ffffff;
+}
+.chip[aria-pressed="true"]:hover,
+.chip[aria-selected="true"]:hover {
+  background: var(--marca-700);
+  border-color: var(--marca-700);
+  color: #ffffff;
+}
+
+.chip-cifra {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--color-tenue);
+}
+.chip[aria-pressed="true"] .chip-cifra,
+.chip[aria-selected="true"] .chip-cifra {
+  color: color-mix(in srgb, #ffffff 75%, transparent);
+}
+
+/* --- Formulario ---------------------------------------------------------- */
+
+.input {
+  width: 100%;
+  min-height: 38px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text);
+  background: var(--color-surface-alta);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 120ms ease;
+}
+.input::placeholder {
+  color: var(--color-tenue);
+}
+.input:hover {
+  border-color: var(--marca-200);
 }
 .input:focus-visible {
-  border-color: var(--marca-600);
+  border-color: var(--marca-500);
   outline-offset: 0;
 }
+
+/* --- Píldoras ------------------------------------------------------------ */
 
 .tag {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
   padding: 4px 10px;
   border-radius: var(--radius-pill);
+  white-space: nowrap;
+  color: var(--color-text-suave);
+  background: var(--color-hover);
+  border: 1px solid var(--color-border);
+}
+.tag-alto {
+  color: var(--riesgo-alto-tinta);
+  background: var(--riesgo-alto-fondo);
+  border-color: var(--riesgo-alto-borde);
+}
+.tag-medio {
+  color: var(--riesgo-medio-tinta);
+  background: var(--riesgo-medio-fondo);
+  border-color: var(--riesgo-medio-borde);
+}
+.tag-bajo {
+  color: var(--riesgo-bajo-tinta);
+  background: var(--riesgo-bajo-fondo);
+  border-color: var(--riesgo-bajo-borde);
+}
+
+/* --- Listas largas ------------------------------------------------------- */
+
+/* La lista llega a doscientas filas y cada una dibuja 42 celdas de franja. */
+.fila-lista {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 116px;
+}
+
+.sin-datos {
+  color: var(--color-tenue);
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

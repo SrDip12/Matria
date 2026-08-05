@@ -18,3 +18,20 @@ export const NIVEL_COLOR: Record<NivelRiesgo, string> = {
   medio: TONO_RIESGO.medio.punto,
   bajo: TONO_RIESGO.bajo.punto,
 };
+
+/** Píldora de riesgo del design system. Las variantes viven en globals.css. */
+export const CLASE_TAG: Record<NivelRiesgo, string> = {
+  alto: "tag tag-alto",
+  medio: "tag tag-medio",
+  bajo: "tag tag-bajo",
+};
+
+/**
+ * Qué hace la matrona con esta fila, en una palabra. Es la etiqueta que el design system usa
+ * en la columna de riesgo del panel priorizado: dice la acción, no el nombre de la categoría.
+ */
+export const ACCION_RIESGO: Record<NivelRiesgo, string> = {
+  alto: "Escalar",
+  medio: "Revisar",
+  bajo: "Normal",
+};

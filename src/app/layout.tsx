@@ -13,6 +13,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es-CL">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <meta name="theme-color" content="#5c0a18" />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );

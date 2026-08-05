@@ -1,9 +1,11 @@
 "use client";
 
 import { Franja42 } from "@/components/Franja42";
+import { TarjetaAlerta } from "@/components/TarjetaAlerta";
 import { ETIQUETA_PARTO, partirEtiqueta } from "@/lib/formato";
-import { NIVEL_COLOR, TONO_RIESGO } from "@/lib/riesgo";
-import { ETIQUETA_RIESGO, type FilaPanel } from "@/lib/types";
+import { diasSinContacto, DIAS_SILENCIO } from "@/lib/metricas";
+import { ACCION_RIESGO, CLASE_TAG, NIVEL_COLOR } from "@/lib/riesgo";
+import { DIAS_PUERPERIO, ETIQUETA_RIESGO, type FilaPanel } from "@/lib/types";
 
 interface FilaPuerperaProps {
   fila: FilaPanel;
@@ -12,72 +14,122 @@ interface FilaPuerperaProps {
   onResolverAlerta: (alertaId: string) => void;
 }
 
-export function FilaPuerpera({ fila, seleccionada, onSeleccionar, onResolverAlerta }: FilaPuerperaProps) {
+const ENCABEZADO_ALERTA = { alto: "Escalar ahora", medio: "Revisar hoy", bajo: "Seguimiento" };
+
+/**
+ * Una puérpera en el panel priorizado.
+ *
+ * Abre con el riel de riesgo de 4px y cierra con la franja de 42 días: el estado de ahora y la
+ * historia completa en la misma fila, sin abrir nada.
+ *
+ * La tarjeta entera selecciona el caso, pero el botón de resolver la alerta vive fuera de ese
+ * botón: uno dentro de otro no es HTML válido y el teclado se pierde entre los dos.
+ */
+export function FilaPuerpera({
+  fila,
+  seleccionada,
+  onSeleccionar,
+  onResolverAlerta,
+}: FilaPuerperaProps) {
   const { puerpera, ultima_evaluacion, alertas_pendientes, nivel_riesgo, franja } = fila;
   const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
+  const silencio = diasSinContacto(fila);
+  const mudo = silencio === null || silencio >= DIAS_SILENCIO;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onSeleccionar}
-      onKeyDown={(evento) => {
-        if (evento.key === "Enter") onSeleccionar();
+    <article
+      className="fila-lista flex overflow-hidden rounded-[var(--radius-lg)] border transition-colors"
+      style={{
+        borderColor: seleccionada ? "var(--marca-200)" : "var(--color-border)",
+        background: seleccionada ? "var(--color-surface-alta)" : "var(--color-surface)",
       }}
-      className="card flex cursor-pointer flex-col gap-2 p-3"
-      style={{ borderColor: seleccionada ? "var(--marca-600)" : "var(--color-border)" }}
     >
-      <div className="flex items-center gap-2">
-        <span
-          className="h-2 w-2 shrink-0 rounded-full"
-          style={{ background: NIVEL_COLOR[nivel_riesgo] }}
-          aria-hidden
-        />
-        <span className="font-medium">{etiqueta}</span>
-        <span className="tabular text-sm" style={{ color: "var(--color-text-suave)" }}>
-          {codigo ? `${codigo} · ` : ""}
-          {puerpera.edad}a · {ETIQUETA_PARTO[puerpera.tipo_parto]} · d.{puerpera.dia_puerperio}
-        </span>
-      </div>
+      <span
+        className="riel my-3 ml-3 self-stretch"
+        style={{ background: NIVEL_COLOR[nivel_riesgo] }}
+        aria-hidden
+      />
 
-      {nivel_riesgo !== "bajo" && ultima_evaluacion ? (
-        <p className="text-sm">
-          {ultima_evaluacion.razonamiento}{" "}
-          <span style={{ color: "var(--color-text-suave)" }}>{ultima_evaluacion.cita_protocolo}</span>
-        </p>
-      ) : (
-        <p className="text-sm" style={{ color: "var(--color-text-suave)" }}>
-          {ETIQUETA_RIESGO.bajo}
-        </p>
-      )}
-
-      <Franja42 franja={franja} diaActual={puerpera.dia_puerperio} />
-
-      {alertas_pendientes.length > 0 && (
-        <div className="flex flex-wrap gap-2 pt-1">
-          {alertas_pendientes.map((alerta) => {
-            const tono = TONO_RIESGO[alerta.nivel];
-            return (
-              <span
-                key={alerta.id}
-                className="tag"
-                style={{ background: tono.fondo, color: tono.texto, border: `1px solid ${tono.borde}` }}
-              >
-                {alerta.titulo}
-                <button
-                  onClick={(evento) => {
-                    evento.stopPropagation();
-                    onResolverAlerta(alerta.id);
-                  }}
-                  className="underline"
-                >
-                  Marcar como resuelta
-                </button>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <button
+          type="button"
+          onClick={onSeleccionar}
+          aria-pressed={seleccionada}
+          className="flex flex-col gap-2.5 px-3 py-3 text-left"
+        >
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+            <span className="subtitulo truncate">{etiqueta}</span>
+            {codigo && (
+              <span className="tabular text-[11px] tenue" translate="no">
+                {codigo}
               </span>
-            );
-          })}
-        </div>
-      )}
-    </div>
+            )}
+            <span className="tabular text-xs suave">
+              {puerpera.edad} a · {ETIQUETA_PARTO[puerpera.tipo_parto]}
+            </span>
+            <span className="ml-auto flex shrink-0 items-center gap-2">
+              {mudo && (
+                <span className="tabular text-[11px] tenue">
+                  {silencio === null ? "nunca escribió" : `${silencio} d en silencio`}
+                </span>
+              )}
+              <span className={CLASE_TAG[nivel_riesgo]}>{ACCION_RIESGO[nivel_riesgo]}</span>
+            </span>
+          </div>
+
+          {nivel_riesgo !== "bajo" && ultima_evaluacion ? (
+            <p className="text-[13.5px] leading-relaxed text-pretty">
+              {ultima_evaluacion.razonamiento}{" "}
+              <span className="tabular tenue">{ultima_evaluacion.cita_protocolo}</span>
+            </p>
+          ) : (
+            <p className="text-[13.5px] suave">{ETIQUETA_RIESGO.bajo}</p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <Franja42 franja={franja} diaActual={puerpera.dia_puerperio} />
+            </div>
+            <span className="tabular shrink-0 text-[11px] tenue">
+              día {puerpera.dia_puerperio} / {DIAS_PUERPERIO}
+            </span>
+          </div>
+        </button>
+
+        {alertas_pendientes.length > 0 && (
+          <div
+            className="flex flex-col gap-2 border-t px-3 py-3"
+            style={{ borderColor: "var(--color-linea)" }}
+          >
+            {alertas_pendientes.map((alerta) => (
+              <TarjetaAlerta
+                key={alerta.id}
+                nivel={alerta.nivel}
+                encabezado={ENCABEZADO_ALERTA[alerta.nivel]}
+                at={alerta.created_at}
+              >
+                <p className="text-[13.5px] font-medium text-pretty">{alerta.titulo}</p>
+                <p className="text-[13px] leading-relaxed text-pretty suave">
+                  {alerta.accion_sugerida}
+                </p>
+                <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                  <span className="tabular text-[11px] tenue">
+                    Protocolo {alerta.cita_protocolo}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onResolverAlerta(alerta.id)}
+                    className="btn btn-secondary ml-auto"
+                    aria-label={`Marcar como resuelta la alerta: ${alerta.titulo}`}
+                  >
+                    Marcar resuelta
+                  </button>
+                </div>
+              </TarjetaAlerta>
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
