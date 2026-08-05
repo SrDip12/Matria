@@ -114,3 +114,71 @@ auth, CRUD de puérperas, animaciones más allá de transiciones de color simple
 Sin frameworks de test (prohibido por CLAUDE.md §3). Verificación manual: `pnpm dev`,
 confirmar que el panel carga con la cohorte sembrada, seleccionar una fila, enviar un mensaje
 y ver la evaluación/alerta aparecer sin recargar.
+
+---
+
+## Corrección v2 (misma fecha) — sistema visual real + dashboard/chatbot
+
+**Corrección de fuente de diseño.** La decisión de sistema visual de más arriba usó
+`Design System/_ds/nocturne-.../` (dark, morado, genérico) porque era lo único explorado en
+esa sesión. El usuario señaló después `Design System/Design System Matria.dc.html`, que es
+el sistema **específico de Matria** — construido sobre la misma base Nocturne pero con paleta,
+logo y componentes propios — y pidió guiarse por ese para todo lo hecho y por hacerse. Se
+reemplazan los tokens de la sección "Decisión de sistema visual" por los de abajo; el resto de
+esta sección (rutas, hooks, flujo de datos, copy) sigue vigente.
+
+**Tokens reales (de `Design System Matria.dc.html`):**
+
+```css
+--fondo:        #F2ECE9
+--superficie:   #FBF8F6
+--borde:        #E2D8D4
+--texto:        #2A1418
+--texto-suave:  #6E555A
+--marca-900:    #5C0A18   /* franja superior, fondo oscuro puntual */
+--marca-700:    #A50B20
+--marca-600:    #C1121F
+--marca-500:    #E01E37   /* rojo base */
+--marca-300:    #FF6B82
+--marca-100:    #FFD9DF
+
+--riesgo-alto:   #C1121F  /* carmesí — escalar ahora, bg #FDECEE borde #F5C2C9 */
+--riesgo-medio:  #C97A05  /* ámbar — revisar hoy, bg #FDF4E3 borde #F0DCB4 */
+--riesgo-bajo:   #1F8A5B  /* verde — seguimiento normal, bg #EDF7F1 borde #C7E3D4 */
+```
+
+Tipografía: Inter (sin cambio). Radio 8px en superficies, 999px en etiquetas/pills. Botón
+primario relleno rojo 600, secundario contorno rojo, ghost solo texto. Burbuja de la
+puérpera: rojo 600 relleno, texto blanco, alineada a la derecha. Burbuja del agente/sistema:
+superficie blanca con borde, alineada a la izquierda — invierte lo implementado con Nocturne.
+
+**Logo.** La marca elegida es "la silueta" (mujer de perfil, guata, un punto adentro) —
+`Logo Matria.dc.html` sección `1e`, confirmada por el usuario contra `Design System
+Matria.dc.html` (misma marca en su banda superior). Un solo color de relleno según contexto
+(`#E01E37` sobre claro, blanco sobre rojo, `#FF3B57` sobre oscuro). Nunca rotada, nunca con
+contorno, nunca multicolor.
+
+**Alcance ampliado — dashboard + chatbot, sin config de reglas.** El usuario pidió un
+"dashboard" y un "tab navegador", que contradice CLAUDE.md §5/§10/§12 (una sola vista, sin
+navegación, sin panel de administración). Resuelto así, confirmado con el usuario:
+
+- El **dashboard** es el panel de la matrona ya construido (200 puérperas de la cohorte
+  sembrada) — no es una pantalla nueva, es la apertura de la app.
+- Se agrega un **tab "Chatbot"**: vista aparte, solo conversación con selector de puérpera,
+  para simular el canal como paciente fuera del recorrido del pitch.
+- **No se construye** portal de configuración de parámetros/reglas — excluido explícitamente
+  por el usuario.
+- Los tabs son estado de cliente (`useState` en `src/app/(panel)/page.tsx`), sin URLs ni
+  rutas nuevas — se mantiene la letra de "sin rutas". El tab "Dashboard" conserva intacto el
+  mecanismo de dos columnas (conversación + panel) que exige la rúbrica: mensaje entra →
+  alerta aparece, en la misma vista, sin cambiar de tab. El tab "Chatbot" es una superficie
+  adicional que nunca se usa durante el momento del pitch.
+
+**Archivos nuevos:**
+- `src/components/LogoMatria.tsx` — el mark SVG de "la silueta", con prop `fill`.
+- `src/components/TabBar.tsx` — barra superior: logo + wordmark + selector Dashboard/Chatbot.
+- `src/components/ChatbotPaciente.tsx` — selector de puérpera + `Conversacion` a ancho
+  completo, para el tab "Chatbot".
+
+**Archivos que cambian de paleta (sin cambiar su lógica):** `globals.css`, `riesgo.ts`,
+`Franja42.tsx`, `FilaPuerpera.tsx`, `PanelMatrona.tsx`, `Conversacion.tsx`.
