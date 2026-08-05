@@ -30,6 +30,63 @@ export type Sospecha =
   | "dificultad_lactancia"
   | "sin_hallazgos";
 
+export type Habito = "no" | "ocasional" | "habitual";
+
+/**
+ * Lo que recoge el onboarding de la puérpera y la ficha básica no alcanza a cubrir.
+ *
+ * Vive en una sola columna `jsonb` (`puerperas.ficha_extendida`) en vez de trece columnas:
+ * es un formulario que se llena una vez y se lee entero, no algo que se consulte campo por
+ * campo, y así el seed de la cohorte no hay que regenerarlo.
+ *
+ * Todo es opcional a propósito. Una ficha a medias es lo normal: la puérpera responde con
+ * una guagua en brazos y abandona a la mitad. Un campo ausente es `null`, nunca un cero ni
+ * un false — misma regla que rige los hallazgos del agente.
+ */
+export interface FichaExtendida {
+  // Antropometría — alimenta el IMC, que es el factor "obesidad" de §8.
+  peso_kg: number | null;
+  talla_cm: number | null;
+
+  // Antecedentes
+  enfermedades_cronicas: string[];
+  /** Del embarazo actual: trastorno hipertensivo, diabetes gestacional, etc. Pesan en §8. */
+  enfermedades_embarazo: string[];
+  antecedentes_familiares: string[];
+  antecedentes_ginecologicos: string[];
+  medicamentos_habituales: string[];
+
+  // Hábitos
+  tabaco: Habito | null;
+  alcohol: Habito | null;
+  drogas: Habito | null;
+
+  // Historia obstétrica
+  fecha_ultima_regla: string | null; // ISO date
+  semanas_gestacion: number | null;
+  /** Número de partos previos, sin contar este. */
+  paridad: number | null;
+  embarazo_multiple: boolean | null;
+  horas_trabajo_parto: number | null;
+
+  // Del parto
+  uso_anestesia: boolean | null;
+  tipo_anestesia: string | null;
+  complicaciones_parto: string[];
+  /** Solo tiene sentido en parto vaginal. */
+  episiotomia: boolean | null;
+  apego_inmediato: boolean | null;
+  fecha_inicio_lactancia: string | null; // ISO date
+
+  // Red de apoyo
+  contacto_emergencia_nombre: string | null;
+  contacto_emergencia_relacion: string | null;
+  contacto_emergencia_telefono: string | null;
+
+  /** Cuándo se completó el onboarding. null = ficha nunca abierta. */
+  completada_at: string | null;
+}
+
 export interface Puerpera {
   id: string;
   nombre: string;
@@ -42,6 +99,8 @@ export interface Puerpera {
   comorbilidades: string[];
   /** Día actual del puerperio, 1 a 42. Derivado de fecha_parto. */
   dia_puerperio: number;
+  /** Onboarding. null en la cohorte sembrada, que solo trae la ficha básica. */
+  ficha_extendida: FichaExtendida | null;
 }
 
 export interface Mensaje {
@@ -136,6 +195,48 @@ export const ETIQUETA_RIESGO: Record<NivelRiesgo, string> = {
   medio: "Riesgo medio",
   bajo: "Sin señales de alarma",
 };
+
+export const ETIQUETA_HABITO: Record<Habito, string> = {
+  no: "No",
+  ocasional: "Ocasional",
+  habitual: "Habitual",
+};
+
+/** Ficha en blanco. La usa el formulario para partir y el panel para no romperse con null. */
+export const FICHA_VACIA: FichaExtendida = {
+  peso_kg: null,
+  talla_cm: null,
+  enfermedades_cronicas: [],
+  enfermedades_embarazo: [],
+  antecedentes_familiares: [],
+  antecedentes_ginecologicos: [],
+  medicamentos_habituales: [],
+  tabaco: null,
+  alcohol: null,
+  drogas: null,
+  fecha_ultima_regla: null,
+  semanas_gestacion: null,
+  paridad: null,
+  embarazo_multiple: null,
+  horas_trabajo_parto: null,
+  uso_anestesia: null,
+  tipo_anestesia: null,
+  complicaciones_parto: [],
+  episiotomia: null,
+  apego_inmediato: null,
+  fecha_inicio_lactancia: null,
+  contacto_emergencia_nombre: null,
+  contacto_emergencia_relacion: null,
+  contacto_emergencia_telefono: null,
+  completada_at: null,
+};
+
+/** IMC. null si falta peso o talla: no se inventa un dato que nadie midió. */
+export function imc(ficha: FichaExtendida | null): number | null {
+  if (!ficha?.peso_kg || !ficha?.talla_cm) return null;
+  const metros = ficha.talla_cm / 100;
+  return Math.round((ficha.peso_kg / (metros * metros)) * 10) / 10;
+}
 
 export const ETIQUETA_SOSPECHA: Record<Sospecha, string> = {
   preeclampsia_postparto: "Preeclampsia postparto",

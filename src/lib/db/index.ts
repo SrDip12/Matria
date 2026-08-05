@@ -9,6 +9,7 @@ import {
   type Alerta,
   type Evaluacion,
   type EstadoAlerta,
+  type FichaExtendida,
   type FilaPanel,
   type Mensaje,
   type NivelRiesgo,
@@ -147,6 +148,55 @@ export async function contextoPuerpera(puerperaId: string): Promise<ContextoPuer
     evaluaciones_previas: ((evaluaciones ?? []) as Evaluacion[]).reverse(),
     alertas_abiertas: (alertas ?? []) as Alerta[],
   };
+}
+
+/**
+ * Alta de una puérpera desde el onboarding. Devuelve la fila ya con `dia_puerperio` derivado,
+ * leyéndola de `puerperas_activas` igual que el resto del sistema.
+ *
+ * Si la fecha de parto queda fuera de los 42 días, la vista no la devuelve: en ese caso se
+ * avisa en vez de entregar una puérpera a medias que el panel nunca va a mostrar.
+ */
+export async function crearPuerpera(
+  base: Omit<Puerpera, "id" | "dia_puerperio">
+): Promise<Puerpera> {
+  const { data, error } = await supabase.from("puerperas").insert(base).select("id").single();
+  fallar("crear puérpera", error);
+
+  const id = (data as { id: string }).id;
+  const { data: activa, error: e2 } = await supabase
+    .from("puerperas_activas")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (e2 || !activa)
+    throw new Error(
+      `La puérpera se creó pero queda fuera de la ventana de seguimiento: el puerperio cubre ` +
+        `los 42 días posteriores al parto y la fecha indicada (${base.fecha_parto}) no cae ahí.`
+    );
+
+  return activa as Puerpera;
+}
+
+/** Guarda o reemplaza la ficha del onboarding de una puérpera que ya existe. */
+export async function guardarFichaExtendida(
+  puerperaId: string,
+  ficha: FichaExtendida
+): Promise<Puerpera> {
+  const { error } = await supabase
+    .from("puerperas")
+    .update({ ficha_extendida: ficha })
+    .eq("id", puerperaId);
+  fallar("guardar ficha extendida", error);
+
+  const { data, error: e2 } = await supabase
+    .from("puerperas_activas")
+    .select("*")
+    .eq("id", puerperaId)
+    .single();
+  fallar("releer puérpera", e2);
+  return data as Puerpera;
 }
 
 export async function conversacion(puerperaId: string): Promise<Mensaje[]> {

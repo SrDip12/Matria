@@ -31,6 +31,9 @@ create table puerperas (
   region          text        not null,
   establecimiento text        not null,
   comorbilidades  text[]      not null default '{}',
+  -- Onboarding de la puérpera. Forma en src/lib/types.ts → FichaExtendida.
+  -- null = ficha nunca abierta, que es el caso de toda la cohorte sembrada.
+  ficha_extendida jsonb,
   created_at      timestamptz not null default now()
 );
 

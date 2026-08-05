@@ -37,6 +37,9 @@ Estas no se discuten ni se optimizan. Romper una descalifica o hunde el pitch.
 6. **No edites archivos fuera de tu rol.** Ver el mapa de propiedad en la sección 6.
 7. **`src/lib/types.ts` y `supabase/schema.sql` están congelados** desde la hora 1. Si
    necesitas cambiarlos, se avisa en voz alta al equipo antes de tocarlos. Nunca en silencio.
+   Cambios hechos con aviso, hasta ahora: `FichaExtendida` y la columna `puerperas.ficha_extendida`
+   (una sola columna `jsonb`, migración en `supabase/migraciones/001_ficha_extendida.sql`). El
+   seed de la cohorte no se tocó: para esas 200 puérperas la ficha queda en `null`.
 
 ## 3. Stack fijo
 
@@ -92,19 +95,25 @@ el input del output en la pantalla nos cuesta nota.
 
 Cada persona edita solo lo suyo. Si necesitas algo de otra zona, lo pides, no lo escribes.
 
-| Rol | Persona | Carpetas que le pertenecen |
+**La propiedad exclusiva por carpeta se levantó.** Cualquiera puede editar cualquier módulo. A
+cambio, dos obligaciones que reemplazan lo que antes garantizaba el mapa:
+
+1. **Avisa en el canal antes de entrar a un módulo que no venías tocando**, para que no haya dos
+   personas editando el mismo archivo a ciegas. Ya pasó una vez con `src/lib/agente/`.
+2. **Commit chico y frecuente.** Es lo único que evita el conflicto grande ahora que no hay
+   dueños. `git pull --rebase` antes de cada push, siempre.
+
+| Módulo | Referente | Qué es |
 |---|---|---|
-| **Agente** | Pip | `src/lib/agente/` |
-| **Backend** | Rodo | `supabase/`, `src/lib/db/`, `src/app/api/`, `scripts/`, `docs/DATOS_DEIS.md` |
-| **Frontend** | Senler | `src/app/(panel)/`, `src/components/`, `src/app/globals.css` |
-| **Clínica** | Vale | `docs/PROTOCOLO_CLINICO.md` — nadie más lo edita |
-| **Compartido — congelado** | — | `src/lib/types.ts`, `supabase/schema.sql` |
-| **Nadie sin avisar** | — | `package.json`, `next.config.js`, `tailwind.config.ts` |
+| **Agente** | Pip | `src/lib/agente/` — prompt, herramienta, reglas duras, factores §8 |
+| **Backend** | Rodo | `supabase/`, `src/lib/db/`, `src/app/api/`, `scripts/` |
+| **Frontend** | Senler | `src/app/`, `src/components/`, `src/lib/hooks/`, `src/app/globals.css` |
+| **Clínica** | Vale | `docs/PROTOCOLO_CLINICO.md` — **sigue siendo solo de ella** |
 
-En una frase: **Pip piensa, Rodo conecta, Senler muestra, Vale valida.**
+El referente no es dueño: es a quien le preguntas primero y quien revisa si algo se rompe. La
+única excepción que se mantiene es el protocolo clínico, que lo escribe la matrona y nadie más.
 
-Si dos personas necesitan el mismo archivo, gana quien lo tiene asignado; el otro pide el
-cambio.
+En una frase: **Pip piensa, Rodo conecta, Senler muestra, Vale valida** — pero todos construyen.
 
 ## 7. Git
 
@@ -182,10 +191,13 @@ cuando corre en local. Se despliega temprano y se despliega seguido.
 
 Si te descubres empezando cualquiera de estas, para:
 
-autenticación · integración real con WhatsApp · multi-tenant · RLS · tests · onboarding ·
-panel de administración · envío de correos · exportar a PDF · modo oscuro · responsive más
-allá de la pantalla del demo · CRUD de puérperas · edición de protocolo desde la UI ·
-internacionalización · página de marketing
+autenticación · integración real con WhatsApp · multi-tenant · RLS · panel de administración ·
+envío de correos · exportar a PDF · modo oscuro · responsive más allá de la pantalla del demo ·
+edición de protocolo desde la UI · internacionalización · página de marketing
+
+**El onboarding de la puérpera salió de esta lista.** Se construyó: recoge los antecedentes que
+el protocolo §8 usa para modificar el riesgo basal, y esos factores entran al agente en cada
+evaluación. Sin ficha, el agente evalúa igual pero solo con la ficha básica.
 
 ## 13. Si estás bloqueado
 

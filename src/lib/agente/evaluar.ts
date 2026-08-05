@@ -54,6 +54,10 @@ export interface ContextoPuerpera {
    * sueltos: una señal que ya venía apareciendo pesa distinto que la misma señal aislada.
    */
   evaluaciones_previas?: EvaluacionPrevia[];
+  /** Factores de §8 ya resueltos. Los arma `factoresRiesgo()` a partir de la ficha. */
+  factores_riesgo?: string[];
+  /** Antecedentes que no son §8 pero que cambian cómo se lee el relato de hoy. */
+  antecedentes?: string[];
 }
 
 let cliente: Anthropic | null = null;
@@ -180,8 +184,25 @@ function mensajeUsuario(texto: string, ctx?: ContextoPuerpera): string {
     ? `Ficha de la puérpera:\n${ficha.join("\n")}`
     : "Ficha de la puérpera: no disponible. Evalúa solo el relato y no supongas el día de puerperio.";
 
-  const previas = ctx?.evaluaciones_previas ?? [];
   const bloques = [cabecera];
+
+  // §8: no cambian la categoría, priorizan dentro de ella. Se lo decimos explícito porque el
+  // modelo tiende a subir de nivel cuando ve una lista de factores, y §8 dice justo lo
+  // contrario salvo su excepción única.
+  if (ctx?.factores_riesgo?.length)
+    bloques.push(
+      `Factores que modifican el riesgo basal (§8):\n` +
+        ctx.factores_riesgo.map((f) => `- ${f}`).join("\n") +
+        `\n\nEstos factores no cambian por sí solos la categoría del hallazgo: priorizan dentro ` +
+        `de la misma categoría. La única excepción es la que el propio §8 define.`
+    );
+
+  if (ctx?.antecedentes?.length)
+    bloques.push(
+      `Otros antecedentes de la ficha:\n` + ctx.antecedentes.map((a) => `- ${a}`).join("\n")
+    );
+
+  const previas = ctx?.evaluaciones_previas ?? [];
   if (previas.length) bloques.push(historial(previas));
   bloques.push(`Relato de la puérpera:\n"""\n${texto}\n"""`);
 
