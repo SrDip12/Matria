@@ -672,11 +672,14 @@ function generar() {
         created_at: at,
       });
 
+      // §5.2 es apoyo en lactancia, no urgencia: no puede subir a alto por evolución. Una
+      // alerta de riesgo alto cuya acción es "agendar apoyo dentro de 48 h" no se sostiene.
+      const puedeSerAlto = escenario?.sospecha !== "dificultad_lactancia";
       const nivel: NivelRiesgo = !esEvento
         ? "bajo"
         : escenario!.hallazgos.ideacion_autolitica || // Protocolo §7.2 — sin excepción
             escenario!.sospecha === "tromboembolismo" || // Protocolo §6 — escala directo a alto
-            perfil === "alto"
+            (perfil === "alto" && puedeSerAlto)
           ? "alto"
           : "medio";
 
