@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# datasets crudos pesados
+Datos/EGR_DATOS_ABIERTO_2025.csv
