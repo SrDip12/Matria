@@ -24,8 +24,14 @@ for (const seccion of [SECCION_IDEACION, SECCION_TROMBOEMBOLISMO])
         `Alguien renumeró docs/PROTOCOLO_CLINICO.md: avisar a Vale antes de seguir.`
     );
 
-function escalar(salida: SalidaAgente, cita: string, sospecha: Sospecha): SalidaAgente {
-  // Si ya venía en alto, se respeta la cita del modelo: probablemente es más específica.
+function escalar(
+  salida: SalidaAgente,
+  cita: string,
+  sospecha: Sospecha,
+  motivo: string
+): SalidaAgente {
+  // Si ya venía en alto, se respeta la cita y el razonamiento del modelo: probablemente
+  // son más específicos. Solo nos aseguramos de que la sospecha quede registrada.
   const yaEstabaAlto = salida.nivel_riesgo === "alto";
 
   // "sin_hallazgos" y riesgo alto no pueden convivir: dejaría la fila del panel incoherente.
@@ -37,6 +43,10 @@ function escalar(salida: SalidaAgente, cita: string, sospecha: Sospecha): Salida
     nivel_riesgo: "alto",
     cita_protocolo: yaEstabaAlto ? salida.cita_protocolo : cita,
     sospechas,
+    // Sin esto la matrona lee una alerta alta con un razonamiento que justifica otra cosa.
+    razonamiento: yaEstabaAlto
+      ? salida.razonamiento
+      : `Escalado a riesgo alto por ${cita} (${motivo}). ${salida.razonamiento}`,
   };
 }
 
@@ -44,10 +54,26 @@ export function aplicarReglasDuras(salida: SalidaAgente): SalidaAgente {
   let resultado = salida;
 
   if (resultado.hallazgos.ideacion_autolitica === true)
-    resultado = escalar(resultado, SECCION_IDEACION, "depresion_postparto");
+    resultado = escalar(
+      resultado,
+      SECCION_IDEACION,
+      "depresion_postparto",
+      "ideación autolítica referida"
+    );
 
-  if (resultado.sospechas.includes("tromboembolismo"))
-    resultado = escalar(resultado, SECCION_TROMBOEMBOLISMO, "tromboembolismo");
+  // §6 no exige combinación: cualquiera de sus señales, aislada, es signo de emergencia.
+  // Por eso no basta con mirar la sospecha que puso el modelo; se miran los hallazgos.
+  if (
+    resultado.sospechas.includes("tromboembolismo") ||
+    resultado.hallazgos.disnea === true ||
+    resultado.hallazgos.dolor_pantorrilla_unilateral === true
+  )
+    resultado = escalar(
+      resultado,
+      SECCION_TROMBOEMBOLISMO,
+      "tromboembolismo",
+      "señal compatible con evento tromboembólico"
+    );
 
   return resultado;
 }
