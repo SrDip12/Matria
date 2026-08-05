@@ -25,18 +25,21 @@ cuenta propia: lo primero muestra que leyeron las bases, lo segundo que fueron m
 
 | # | Cifra | Fuente | Año | Valor | Estado |
 |---|---|---|---|---|---|
-| 1 | Nacimientos anuales en Chile | INE, Estadísticas Vitales | 2023 (provisional) | 171.992 nacidos vivos | ✅ Completo |
-| 2 | Proporción de partos por cesárea | OVO-Chile / CIPER, sobre datos DEIS | 2021 | 59% nacional | ✅ Completo — **ancla** |
-| 3 | Cesáreas sector público | OVO-Chile / CIPER, sobre datos DEIS | 2021 | 49% | ✅ Completo |
-| 4 | Cesáreas sector privado | OVO-Chile / CIPER, sobre datos DEIS | 2021 | 73% | ✅ Completo |
-| 5 | Edad de la gestante (tramo modal) | INE, Estadísticas Vitales | 2023 (provisional) | 30–34 años: 29,4% (50.523 nac.) | ✅ Completo |
-| 6 | Proporción de gestantes ≥35 años | INE, Estadísticas Vitales | 2023 (provisional) | 23,9% | ✅ Completo |
-| 7 | Embarazos con patología (ver abajo) | DEIS egresos, lista CIE-10 | — | — | ⛔ Pendiente — ver nota |
-| 8 | Reingreso ≤42 días por causa puerperal | DEIS egresos, capítulo O | — | — | ⛔ Pendiente — ver nota |
+| 1 | Nacimientos anuales en Chile | INE, series vitales mensuales | 2025 (provisional) | 146.446 nacidos vivos | ✅ Completo — actualizado |
+| 2 | Proporción de partos por cesárea | DEIS, egresos hospitalarios | 2025 | **54,3% nacional** (43.830 de 80.654 egresos por parto) | ✅ Completo — **ancla** |
+| 3 | Cesáreas sector público (SNSS) | DEIS, egresos hospitalarios | 2025 | 42,1% (20.042 / 47.665) | ✅ Completo |
+| 4 | Cesáreas sector privado (no SNSS) | DEIS, egresos hospitalarios | 2025 | 75,0% (19.658 / 26.217) | ✅ Completo |
+| 5 | Edad de la gestante (tramo modal) | INE, series vitales mensuales | 2025 (provisional) | 30–34 años: 29,6% (43.327 nac.) | ✅ Completo — actualizado |
+| 6 | Proporción de gestantes ≥35 años | INE, series vitales mensuales | 2025 (provisional) | 25,8% | ✅ Completo — actualizado |
+| 7 | Embarazos con patología (ver abajo) | DEIS egresos, lista CIE-10 | 2025 | Diabetes gestacional 12,8% · SHE 10,7% · parto prematuro 6,8%, sobre los 80.654 egresos por parto | ✅ Completo — con la advertencia de abajo |
+| 8 | Egresos por causa puerperal (O85–O92) | DEIS egresos, capítulo O | 2025 | 1.785 egresos = **2,21% de los partos del mismo año** | ⚠️ Completo con reserva — no es un reingreso verificado, ver abajo |
 | 9 | Mortalidad materna tardía (O96) | Flores & Garmendia 2021, sobre datos DEIS | 1990–2018 | TMM global 23/100.000 nv; O96 es la causa de mayor crecimiento (39% del subgrupo "otras afecciones obstétricas" en 2004–2018, subgrupo que fue 1ª causa con 50,4%) | ✅ Completo |
 
-**La cifra 2 es el número ancla de todo el pitch: 59% nacional de cesáreas en 2021 (49%
-público, 73% privado).** Úsenla de forma consistente en el deck, el formulario y el discurso.
+**La cifra 2 es el número ancla de todo el pitch: 54,3% nacional de cesáreas en 2025 (42,1%
+público, 75,0% privado), calculado por el equipo directamente sobre los microdatos de egresos
+DEIS.** Úsenla de forma consistente en el deck, el formulario y el discurso. Reemplaza al 59%
+de 2021 de OVO/CIPER, que sigue citado abajo como contraste y como serie histórica: la brecha
+público/privado se abrió (era 49/73, ahora 42/75).
 
 ### Por qué la 2/3/4 no vienen directo de un dashboard DEIS
 
@@ -55,24 +58,60 @@ disponible sin acceso institucional a DEIS. Se cruzó contra el Informe Anual de
 Humanos 2016 del INDH, que reporta la misma serie para 2015 (50% nacional, 41% público, 69%
 privado) también en base a DEIS — la tendencia es consistente y al alza.
 
-### Cifras 7 y 8 — no se pudieron completar en esta ventana
+### Cifras 7 y 8 — resueltas con los microdatos de egresos 2025
 
-Ambas requieren microdatos de egresos hospitalarios (registro a nivel de cada egreso, con
-CIE-10 y, para la 8, capacidad de enlazar reingresos de la misma paciente), que solo están
-disponibles en el sistema autenticado `egresos40.minsal.cl`. No existe un indicador agregado
-público que las resuma directamente:
+El dataset de datos abiertos `Datos/EGR_DATOS_ABIERTO_2025.csv` (199.473 egresos del capítulo O,
+filtrado según `docs/FILTRADO_DATOS.md`) sí trae el registro a nivel de egreso, así que las dos
+cifras se calcularon por cuenta propia. **Denominador de todo lo que sigue: 80.654 egresos con
+`DIAG1` en O80–O84, es decir partos del año 2025.**
 
-- **Cifra 7 (patología del embarazo):** los códigos ya están definidos por Vale más abajo;
-  falta solo cruzarlos contra el total de egresos por dependencia y año una vez que alguien
-  del equipo consiga acceso al sistema (institucional, o vía Ley de Transparencia como hizo
-  OVO-Chile).
-- **Cifra 8 (reingreso ≤42 días):** lo único encontrado fue un estudio de un solo hospital
-  (*Rev Chil Obstet Ginecol* 2017;82(1):30-36, alta a las 48h post-cesárea) con causas de
-  reingreso (metrorragia, infección puerperal, legrado puerperal = 70% de los reingresos) pero
-  **sin representar una tasa nacional**. No se usa en el deck.
+**Advertencia metodológica que hay que decir en voz alta si el jurado pregunta:** `DIAG2` viene
+vacío en el 99,9% del archivo — solo 200 filas de 199.473 lo traen, y ninguna con código O. Cada
+egreso porta un único diagnóstico. Eso significa que un egreso por parto **no puede** portar
+además su comorbilidad codificada, y por lo tanto la cifra 7 **no es prevalencia intra-parto**:
+es la razón entre egresos por esa patología y egresos por parto del mismo año. Es un indicador
+de carga hospitalaria, no de prevalencia clínica.
 
-Si sobra tiempo real: cifra 7 y 8 son las primeras candidatas a intentar de nuevo, en ese
-orden.
+- **Cifra 7 (patología del embarazo), egresos 2025:**
+
+  | Categoría | Códigos | Egresos | Razón sobre partos |
+  |---|---|---|---|
+  | Diabetes gestacional | O24 | 10.334 | 12,8% |
+  | Síndrome hipertensivo del embarazo | O10–O16 | 8.646 | 10,7% |
+  | Parto prematuro | O60 | 5.451 | 6,8% |
+
+  Dentro de O10–O16, el desglose útil: O13 hipertensión gestacional 2.381 · O14 preeclampsia
+  3.495 (O14.0 1.014, O14.1 1.159, O14.2 268, O14.9 1.054) · O15 eclampsia 84 · O11 398 · O16 831.
+
+- **Cifra 8 (causa puerperal), egresos 2025:** el bloque O85–O92, que es el puerperio propiamente
+  tal, suma **1.785 egresos = 2,21% de los partos del año**.
+
+  | Código | Qué es | Egresos |
+  |---|---|---|
+  | O86 | Otras infecciones puerperales (O86.0 herida quirúrgica obstétrica: 361) | 504 |
+  | O90 | Otras complicaciones del puerperio | 479 |
+  | O91 | Infecciones de la mama asociadas al parto | 382 |
+  | O85 | Sepsis puerperal | 205 |
+  | O89 | Complicaciones de la anestesia durante el puerperio | 102 |
+  | O92 | Trastornos de la mama y de la lactancia | 71 |
+  | O87 | Complicaciones venosas del puerperio | 23 |
+  | O88 | Embolia obstétrica | 19 |
+
+  Fuera de ese bloque pero dentro de la ventana de Matria: **O72.2 hemorragia postparto tardía y
+  secundaria, 237 egresos**.
+
+  **Por qué la cifra 8 lleva reserva:** el archivo no trae identificador de paciente ni marca de
+  readmisión. 1.785 es "egresos con causa puerperal como diagnóstico principal", **no reingresos
+  verificados**: no hay forma de saber cuántos son la misma mujer volviendo tras un parto que
+  también está en el archivo. Decirlo como "tasa de reingreso" sería falsearlo. Se cita como
+  *carga hospitalaria de causa puerperal*. El estudio de un solo hospital que ya estaba
+  documentado acá (*Rev Chil Obstet Ginecol* 2017;82(1):30-36, alta a las 48h post-cesárea:
+  metrorragia, infección puerperal y legrado puerperal = 70% de los reingresos) sigue sirviendo
+  como referencia cualitativa de las causas, no como tasa nacional.
+
+  El sesgo de sector es marcado y vale la pena mostrarlo: **79,8% de los egresos por causa
+  puerperal ocurren en el SNSS**, contra 67,4% del total de egresos obstétricos. La estadía
+  mediana del bloque es de 3 días (media 4,0), contra 2 días de un parto.
 
 ### Citas completas
 
@@ -95,19 +134,54 @@ arman por combinación de dos listas, y no hay RUT ni teléfono en ningún campo
 
 | Variable | Cómo se distribuye | Fuente |
 |---|---|---|
-| Región | 16 regiones con la glosa oficial DEIS | Proxy: proporción de defunciones de mujeres de 15 a 49 años por región, calculada sobre `Datos/DEFUNCIONES_FUENTE_DEIS_2024_2026_04082026.csv` (DEIS, corte 04-08-2026, n=8.921). Se usa como aproximación de la distribución regional de mujeres en edad fértil, no como indicador de natalidad |
-| Establecimiento | 2 a 6 por región, público o privado según previsión | Nombre oficial del Anexo 4 "Establecimientos de procedencia", `Datos/Esquema_Registros_2026.xlsx` (Esquema de Registros DEIS 2026), campos `Nombre Oficial`, `Pertenencia al SNSS` y `Código Región` |
-| Tipo de parto | 49% cesárea si el establecimiento es público, 73% si es privado | Cifras 3 y 4 de la tabla de arriba |
-| Edad | Tramos quinquenales 15–49; modal 30–34 (29,4%), ≥35 años 23,9% | Cifras 5 y 6 |
-| Previsión | FONASA A 22% · B 26% · C 14% · D 20% · ISAPRE 18% | **Supuesto del equipo.** Los datasets entregados no traen desglose de previsión; si aparece la fuente, se reemplaza |
-| Establecimiento privado según previsión | 2% en FONASA A hasta 85% en ISAPRE | **Supuesto del equipo**, misma condición que la fila anterior |
-| Comorbilidades | SHE 10% · diabetes gestacional 12% · parto prematuro 7% | Categorías de la lista CIE-10 de Vale (abajo). **Prevalencias: supuesto del equipo**, pendientes de las cifras 7 y 8 |
+| Región | 16 regiones con la glosa oficial DEIS | **Real.** Proporción de egresos por parto (`DIAG1` en O80–O84) por `GLOSA_REGION_RESIDENCIA` en `Datos/EGR_DATOS_ABIERTO_2025.csv`, sobre los 72.983 partos con región identificada. Se excluyen del denominador 6.772 filas suprimidas por DEIS, 693 "Ignorada" y 206 "Extranjero" |
+| Establecimiento | 2 a 6 por región, público o privado según previsión | Nombre oficial del Anexo 4 "Establecimientos de procedencia", `Datos/Esquema_Registros_2026.xlsx` (Esquema de Registros DEIS 2026), campos `Nombre Oficial`, `Pertenencia al SNSS` y `Código Región`. Verificado byte a byte contra el anexo |
+| Tipo de parto | 42,1% cesárea si el establecimiento es SNSS, 75,0% si no lo es | **Real.** Cifras 3 y 4 de la tabla de arriba |
+| Edad | Tramos quinquenales 12–54; modal 30–34 (29,6%), ≥35 años 25,8% | **Real.** INE, `Datos/series-vitales-mensuales-2024p-2026p.xlsx`, hoja Nacimientos, año 2025 completo, Total País, n = 146.161 con edad especificada |
+| Previsión | FONASA 90,7% · ISAPRE 9,3% | **Real** en el eje FONASA/ISAPRE: 66.409 y 6.806 partos DEIS 2025. El desglose de FONASA en tramos A/B/C/D (26,8 / 31,7 / 17,1 / 24,4 dentro de FONASA) **sigue siendo supuesto del equipo**: el dataset trae "FONASA" sin tramo |
+| Establecimiento no SNSS según previsión | 28,8% en FONASA, 98,6% en ISAPRE | **Real.** Cruce `GLOSA_PREVISION` × `PERTENENCIA_ESTABLECIMIENTO_SALU` sobre los partos. El 28,8% de FONASA en establecimiento privado es modalidad libre elección |
+| Comorbilidades | Diabetes gestacional 12,8% · SHE 10,7% · parto prematuro 6,8% | **Real, con la reserva de la cifra 7**: son razones de egresos por patología sobre egresos por parto, no prevalencias intra-parto |
+| Mezcla de señales de alarma | Ponderada por cuadro, en casos por 1.000 puérperas seguidas | **Mixta.** Ver la nota sobre el factor de subregistro, abajo |
+| Ventanas de riesgo por cuadro | Días del puerperio en que cada cuadro puede dispararse | **Real donde la norma la define:** hemorragia tardía días 2–42 (Norma Técnica del Puerperio MINSAL 2015 p.58 y Guía Perinatal 2015 p.367: entre las 24 h y las 6 semanas) e infección de herida operatoria días 3–30 (Norma p.87). Para endometritis, mastitis y TVP/TEP **la norma no define ventana temporal** — lo único disponible es la tabla cualitativa por etapa de la p.45. Esas tres siguen con rango del equipo, pendientes de Vale |
 
-La proporción de cesáreas que resulta de la cohorte queda cerca del 55%, bajo el 59% nacional
-de la cifra ancla: el 59% se calcula sobre el total de partos del país y acá sale de combinar
-las tasas por dependencia del establecimiento con la mezcla público/privado supuesta. Si la
-mezcla se corrige con una fuente real, el número converge solo. La corrida imprime el
-porcentaje efectivo para que nadie cite de memoria.
+Las 16 regiones y los 9 escenarios clínicos tienen cobertura garantizada en la cohorte: las
+primeras filas del seed toman una región y un escenario cada una antes de pasar al muestreo
+aleatorio. Con 200 mujeres, Aisén (0,9%) y el tromboembolismo (0,5 por 1.000) se caen del
+muestreo en buena parte de las corridas, y la demo no puede depender de eso.
+
+La proporción de cesáreas que resulta de la cohorte queda cerca del 53,7%, algo bajo el 54,3%
+observado: el 54,3% incluye las 6.772 filas que DEIS suprime, cuya tasa de cesárea es 61,0%, y
+que la cohorte no puede representar porque no tienen región ni previsión. La corrida imprime el
+porcentaje efectivo y falla si se aleja más de 8 puntos, para que nadie cite de memoria.
+
+### El factor de subregistro de la mezcla de señales
+
+DEIS mide hospitalizaciones y Matria mira el puerperio en la casa. Poner tasas de egreso y
+supuestos ambulatorios en la misma escala deforma la cohorte: con las tasas DEIS crudas, la
+mastitis aparecía 20 veces menos que la dificultad de lactancia, que es clínicamente absurdo.
+
+La mezcla usa entonces **la tasa DEIS multiplicada por un factor único de subregistro de 10×**,
+aplicado por igual a todos los cuadros para no alterar la mezcla relativa entre ellos, que es la
+parte que sí tiene fuente. El factor está anclado en el único cuadro donde hay con qué
+contrastar: **mastitis da 0,47% en egresos DEIS 2025 contra 3%–33% en la literatura clínica**,
+es decir un factor real de entre 6 y 70. Se toma 10, el extremo prudente.
+
+| Escenario | § | Base DEIS 2025 | Peso (×10) |
+|---|---|---|---|
+| Mastitis | §5.1 | O91, 382 egresos | 47,4 |
+| Infección de herida operatoria | §3.2 | O86.0, 361 egresos | 44,8 |
+| Endometritis | §3.1 | O85 + O86.1 + O86.4, 248 egresos | 30,7 |
+| Hemorragia tardía | §4 | O72.2, 237 egresos | 29,4 |
+| Tromboembolismo | §6 | O87 + O88, 42 egresos | 5,2 |
+| Preeclampsia postparto | §2 | O15.2, 24 egresos | 3,0 |
+| Sintomatología depresiva | §7.1 | — sin dato posible | 40 (supuesto) |
+| Dificultad de lactancia | §5.2 | O92 solo hospitalizada, 71 | 25 (supuesto) |
+| Ideación autolítica | §7.2 | — sin dato posible | 6 (supuesto) |
+
+Un dato del archivo que conviene tener a mano y que sorprende: **Los Ríos registra 491 partos y
+Aisén 672**, pese a que Los Ríos tiene el triple de población. La variable es región de
+*residencia* y el subregistro es del archivo, no del seed. Se deja tal cual porque el dato es
+real y trazable; si alguien pregunta, esa es la respuesta.
 
 ## Códigos CIE-10
 
@@ -131,6 +205,23 @@ Lista definida por Vale. **No agregar códigos por cuenta propia.**
 Documentar acá lo que se buscó y **no existe**. Esta sección sostiene el argumento más fuerte
 del pitch y es la respuesta cuando el jurado pregunte si buscaron bien.
 
+### Depresión postparto — cero registros en 199.473 egresos obstétricos
+
+- **Buscado en:** `Datos/EGR_DATOS_ABIERTO_2025.csv`, búsqueda del código **F53** (trastornos
+  mentales y del comportamiento asociados al puerperio) en `DIAG1` y en `DIAG2`, sobre la
+  totalidad del archivo.
+- **Qué se encontró:** **0 casos. Cero, en los 199.473 egresos del capítulo O de todo 2025.**
+  El único proxy disponible es O99.3 (trastornos mentales y del sistema nervioso que complican
+  el embarazo, parto y puerperio) con 968 egresos, categoría que mezcla depresión, ansiedad,
+  epilepsia y cualquier condición neurológica, y que no es separable con este dataset.
+- **Por qué el dato no existe:** la depresión postparto no hospitaliza. El sistema de egresos
+  solo ve a la mujer cuando ya ocupó una cama, y para este cuadro eso prácticamente no ocurre —
+  o cuando ocurre, se codifica por la causa del ingreso, no por el cuadro de base.
+- **Por qué importa acá:** es el cuadro que el protocolo escala más agresivamente (§7.2, ideación
+  autolítica escala a alto sin excepción) y es, al mismo tiempo, el que el país no cuenta. Los
+  pesos de §7.1 y §7.2 en la cohorte sintética son supuesto del equipo por esta razón, y está
+  declarado en `scripts/seed.ts`.
+
 ### Mastitis puerperal — tasa nacional de incidencia
 
 - **Buscado en:** DEIS egresos hospitalarios (vía las mismas rutas descritas arriba), DEIS
@@ -142,6 +233,11 @@ del pitch y es la respuesta cuando el jurado pregunte si buscaron bien.
   3%–33% de mujeres en lactancia, sin desagregar por país) y un dato puntual de un protocolo
   de lavado de manos en un establecimiento local (bajó de 2,9% a 0,65%, no representativo a
   nivel nacional). Ningún indicador nacional agregado ni vigente.
+- **Lo que sí se pudo calcular ahora, y por qué no cierra el vacío:** con los microdatos 2025,
+  O91 (infecciones de la mama asociadas al parto) tiene **382 egresos**, es decir **0,47% de los
+  partos del año**. Contrastar ese 0,47% con el rango clínico internacional de 3%–33% es la
+  demostración numérica del argumento: entre el piso de ese rango y lo que el sistema registra
+  hay un factor de seis a setenta. Lo que se ve en DEIS es la mastitis que terminó hospitalizada.
 - **Por qué el dato no existe:** los egresos hospitalarios solo capturan casos que
   terminaron en hospitalización. La mastitis se maneja de forma ambulatoria o simplemente no
   se consulta. El REM de APS reporta producción agregada, no incidencia.
