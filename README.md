@@ -70,8 +70,17 @@ Requiere Node 20+ y pnpm.
 - Supabase: _(pegar link del proyecto)_
 - Canal del equipo: _(pegar)_
 
+## Fuentes oficiales y normativa clínica
+
+- **DEIS — Datos Abiertos (Egresos hospitalarios):** [deis.minsal.cl/#datosabiertos](https://deis.minsal.cl/#datosabiertos)
+- **INE — Estadísticas Vitales:** [ine.gob.cl — Estadísticas Vitales](https://www.ine.gob.cl/estadisticas-por-tema/demografia-y-poblacion/estadisticas-vitales)
+- **MINSAL — Guía Perinatal (2015):** [PDF Guía Perinatal MINSAL](https://www.minsal.cl/wp-content/uploads/2015/10/GUIA-PERINATAL_2015.10.08_web.pdf-R.pdf)
+- **MINSAL — Glosa 06 (1er Trimestre):** [PDF Glosa 06 MINSAL](https://www.minsal.cl/wp-content/uploads/2026/07/Glosa-06-letra-a-b-c-i-j-k-comun-a-la-partida-1er-trimestre-1.pdf)
+- **MINSAL — Norma Técnica para la Atención Integral en el Puerperio:** [PDF Norma Técnica Puerperio MINSAL](https://www.minsal.cl/wp-content/uploads/2015/09/NORMA-TECNICA-PARA-LA-ATENCION-INTEGRAL-EN-EL-PUERPERIO_web.-08.10.2015-R.pdf)
+
 ## Nota sobre los datos
 
 Toda la información de puérperas en este repositorio es **sintética**. Las distribuciones
 (edad, tipo de parto, previsión, región) replican las del DEIS, pero ninguna persona es
 real. No existe ni existió acceso a fichas clínicas.
+

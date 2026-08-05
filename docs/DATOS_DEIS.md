@@ -8,18 +8,19 @@ Responsable: Rodo. Validación clínica de las categorías: Vale.
 
 ## Fuentes
 
-| Fuente | Qué tiene | Dónde |
+| Fuente | Qué tiene | Dónde / Enlace |
 |---|---|---|
-| DEIS — Egresos hospitalarios | Diagnóstico CIE-10, estadía, condición de egreso, dependencia del establecimiento. Reporte obligatorio, cobertura censal | `deis.minsal.cl/sistemas` |
-| DEIS — Estadísticas vitales | Nacimientos (serie desde 1992), defunciones | mismo portal |
-| DEIS — Diccionarios de datos | Definición de columnas por año, manuales de series REM | mismo portal |
-| INE | Anuarios de estadísticas vitales desde 1997 | `ine.gob.cl` |
-| MINSAL — Glosa 06 | Listas de espera, fuente SIGTE, con fecha de corte explícita | `minsal.cl/eje-tiempos-de-espera` |
-| BCN | Informes que ya cruzaron y contextualizaron cifras | `bcn.cl` |
+| DEIS — Egresos hospitalarios y Estadísticas Vitales | Diagnóstico CIE-10, estadía, condición de egreso, nexo censal | [deis.minsal.cl/#datosabiertos](https://deis.minsal.cl/#datosabiertos) |
+| INE — Estadísticas Vitales | Nacimientos (series mensuales y anuales), demografía | [ine.gob.cl — Estadísticas Vitales](https://www.ine.gob.cl/estadisticas-por-tema/demografia-y-poblacion/estadisticas-vitales) |
+| MINSAL — Guía Perinatal (2015) | Guía de práctica clínica perinatal oficial | [PDF Guía Perinatal MINSAL](https://www.minsal.cl/wp-content/uploads/2015/10/GUIA-PERINATAL_2015.10.08_web.pdf-R.pdf) |
+| MINSAL — Glosa 06 (1er Trimestre) | Listas de espera y tiempos de atención | [PDF Glosa 06 MINSAL](https://www.minsal.cl/wp-content/uploads/2026/07/Glosa-06-letra-a-b-c-i-j-k-comun-a-la-partida-1er-trimestre-1.pdf) |
+| MINSAL — Norma Técnica del Puerperio | Norma técnica para la atención integral en el puerperio | [PDF Norma Técnica Puerperio MINSAL](https://www.minsal.cl/wp-content/uploads/2015/09/NORMA-TECNICA-PARA-LA-ATENCION-INTEGRAL-EN-EL-PUERPERIO_web.-08.10.2015-R.pdf) |
+| BCN | Informes que ya cruzaron y contextualizaron cifras | [bcn.cl](https://www.bcn.cl) |
 | Datasets del Lab | Curados y anonimizados por la organización | entregados en el evento |
 
 Los datasets del Lab son los que el jurado conoce de memoria. Úsenlos **y además** DEIS por
 cuenta propia: lo primero muestra que leyeron las bases, lo segundo que fueron más allá.
+
 
 ## Cifras a completar
 
