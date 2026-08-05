@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Conversacion } from "@/components/Conversacion";
 import { FichaOnboarding } from "@/components/FichaOnboarding";
 import { Inicio, type Demo } from "@/components/Inicio";
+import { MiEvolucion } from "@/components/MiEvolucion";
 import { PanelMatrona } from "@/components/PanelMatrona";
 import { PerfilPaciente } from "@/components/PerfilPaciente";
 import { TabBar } from "@/components/TabBar";
@@ -46,25 +47,57 @@ function Dashboard() {
 }
 
 /**
- * Demo de la puérpera: ficha de ingreso, y después su conversación con el perfil al lado.
+ * Demo de la puérpera. Una cosa a la vez, en una columna centrada: ella abre esto con una guagua
+ * en brazos y dos paneles simultáneos la sobrecargan. Las tres pestañas son su recorrido —
+ * conversar, ver cómo ha estado, ver su ficha— y el chat es la que abre por defecto.
  *
- * El input y el output quedan en la misma pantalla a propósito: ella escribe a la izquierda y
- * lo que el sistema entendió de ella se ve a la derecha. La ficha de ingreso es la única
- * pantalla que ocupa todo el ancho, y aparece una sola vez.
+ * El lado de la matrona (Dashboard) mantiene la pantalla dividida, que es donde el jurado tiene
+ * que ver el mensaje entrar y la alerta salir sin cambiar de contexto.
  */
+const PESTANAS = [
+  { id: "chat", etiqueta: "Chat" },
+  { id: "evolucion", etiqueta: "Cómo he estado" },
+  { id: "perfil", etiqueta: "Mi perfil" },
+] as const;
+
+type Pestana = (typeof PESTANAS)[number]["id"];
+
 function DemoPaciente() {
   const { filas, refrescar } = usePanel();
   const [puerpera, setPuerpera] = useState<Puerpera | null>(null);
+  const [pestana, setPestana] = useState<Pestana>("chat");
   const { mensajes, enviando, error, enviar } = useConversacion(puerpera?.id ?? null, refrescar);
 
   if (!puerpera) return <FichaOnboarding onListo={setPuerpera} />;
 
   // Se relee del panel para que el día de puerperio y la ficha sigan al día tras cada poll.
-  const actual = filas.find((f) => f.puerpera.id === puerpera.id)?.puerpera ?? puerpera;
+  const fila = filas.find((f) => f.puerpera.id === puerpera.id) ?? null;
+  const actual = fila?.puerpera ?? puerpera;
 
   return (
-    <div className="flex flex-1">
-      <div className="w-[55%] border-r" style={{ borderColor: "var(--color-border)" }}>
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden">
+      <nav
+        className="flex gap-1 border-b px-4 py-2 sm:px-6"
+        style={{ borderColor: "var(--color-border)" }}
+      >
+        {PESTANAS.map(({ id, etiqueta }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setPestana(id)}
+            aria-current={pestana === id}
+            className="rounded-[var(--radius-pill)] px-3 py-1.5 text-sm"
+            style={{
+              background: pestana === id ? "var(--marca-900)" : "transparent",
+              color: pestana === id ? "#ffffff" : "var(--color-text-suave)",
+            }}
+          >
+            {etiqueta}
+          </button>
+        ))}
+      </nav>
+
+      {pestana === "chat" ? (
         <Conversacion
           puerpera={actual}
           mensajes={mensajes}
@@ -72,14 +105,20 @@ function DemoPaciente() {
           error={error}
           onEnviar={enviar}
         />
-      </div>
-      <div className="flex w-[45%] flex-col gap-3 overflow-y-auto p-4">
-        <h2 className="text-sm font-medium">Mi perfil</h2>
-        <p className="text-xs" style={{ color: "var(--color-text-suave)" }}>
-          Lo que el sistema sabe de ti, tal como lo lee tu matrona.
-        </p>
-        <PerfilPaciente puerpera={actual} />
-      </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+          {pestana === "evolucion" ? (
+            <MiEvolucion fila={fila} mensajes={mensajes} />
+          ) : (
+            <div className="flex flex-col gap-3">
+              <p className="text-xs" style={{ color: "var(--color-text-suave)" }}>
+                Lo que el sistema sabe de ti, tal como lo lee tu matrona.
+              </p>
+              <PerfilPaciente puerpera={actual} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
