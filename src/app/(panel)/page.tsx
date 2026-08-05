@@ -5,6 +5,7 @@ import { Conversacion } from "@/components/Conversacion";
 import { FichaOnboarding } from "@/components/FichaOnboarding";
 import { Inicio, type Demo } from "@/components/Inicio";
 import { MiEvolucion } from "@/components/MiEvolucion";
+import { Notificaciones } from "@/components/Notificaciones";
 import { PanelMatrona } from "@/components/PanelMatrona";
 import { PerfilPaciente } from "@/components/PerfilPaciente";
 import { TabBar } from "@/components/TabBar";
@@ -24,7 +25,7 @@ function Dashboard() {
   const { mensajes, enviando, error, enviar } = useConversacion(seleccionadaId, refrescar);
 
   return (
-    <div className="flex flex-1">
+    <div className="flex min-h-0 flex-1">
       <div className="w-[35%] border-r" style={{ borderColor: "var(--color-border)" }}>
         <Conversacion
           puerpera={puerpera}
@@ -48,16 +49,18 @@ function Dashboard() {
 
 /**
  * Demo de la puérpera. Una cosa a la vez, en una columna centrada: ella abre esto con una guagua
- * en brazos y dos paneles simultáneos la sobrecargan. Las tres pestañas son su recorrido —
- * conversar, ver cómo ha estado, ver su ficha— y el chat es la que abre por defecto.
+ * en brazos y dos paneles simultáneos la sobrecargan. Las pestañas son su recorrido —conversar,
+ * ver qué pasó con lo que contó, ver cómo ha estado, ver su ficha— y el chat es la que abre por
+ * defecto.
  *
  * El lado de la matrona (Dashboard) mantiene la pantalla dividida, que es donde el jurado tiene
  * que ver el mensaje entrar y la alerta salir sin cambiar de contexto.
  */
 const PESTANAS = [
   { id: "chat", etiqueta: "Chat" },
+  { id: "avisos", etiqueta: "Mis avisos" },
   { id: "evolucion", etiqueta: "Cómo he estado" },
-  { id: "perfil", etiqueta: "Mi perfil" },
+  { id: "perfil", etiqueta: "Mi ficha" },
 ] as const;
 
 type Pestana = (typeof PESTANAS)[number]["id"];
@@ -70,48 +73,64 @@ function DemoPaciente() {
 
   if (!puerpera) return <FichaOnboarding onListo={setPuerpera} />;
 
-  // Se relee del panel para que el día de puerperio y la ficha sigan al día tras cada poll.
+  // Se relee del panel para que el día de puerperio, la ficha y los avisos sigan al día tras
+  // cada poll. Mientras el primer poll no vuelve, se muestra lo que devolvió el onboarding.
   const fila = filas.find((f) => f.puerpera.id === puerpera.id) ?? null;
   const actual = fila?.puerpera ?? puerpera;
+  const pendientes = fila?.alertas_pendientes.length ?? 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden">
+    <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden">
       <nav
-        className="flex gap-1 border-b px-4 py-2 sm:px-6"
-        style={{ borderColor: "var(--color-border)" }}
+        className="flex shrink-0 flex-wrap gap-1 border-b px-4 py-3 sm:px-6"
+        role="tablist"
+        aria-label="Mi seguimiento"
+        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
         {PESTANAS.map(({ id, etiqueta }) => (
           <button
             key={id}
             type="button"
+            role="tab"
+            id={`tab-${id}`}
+            aria-selected={pestana === id}
+            aria-controls={`panel-${id}`}
             onClick={() => setPestana(id)}
-            aria-current={pestana === id}
-            className="rounded-[var(--radius-pill)] px-3 py-1.5 text-sm"
-            style={{
-              background: pestana === id ? "var(--marca-900)" : "transparent",
-              color: pestana === id ? "#ffffff" : "var(--color-text-suave)",
-            }}
+            className="chip"
           >
             {etiqueta}
+            {id === "avisos" && pendientes > 0 && <span className="chip-cifra">{pendientes}</span>}
           </button>
         ))}
       </nav>
 
       {pestana === "chat" ? (
-        <Conversacion
-          puerpera={actual}
-          mensajes={mensajes}
-          enviando={enviando}
-          error={error}
-          onEnviar={enviar}
-        />
+        <div
+          role="tabpanel"
+          id="panel-chat"
+          aria-labelledby="tab-chat"
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <Conversacion
+            puerpera={actual}
+            mensajes={mensajes}
+            enviando={enviando}
+            error={error}
+            onEnviar={enviar}
+          />
+        </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-          {pestana === "evolucion" ? (
-            <MiEvolucion fila={fila} mensajes={mensajes} />
-          ) : (
+        <div
+          role="tabpanel"
+          id={`panel-${pestana}`}
+          aria-labelledby={`tab-${pestana}`}
+          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6"
+        >
+          {pestana === "avisos" && <Notificaciones fila={fila} />}
+          {pestana === "evolucion" && <MiEvolucion fila={fila} mensajes={mensajes} />}
+          {pestana === "perfil" && (
             <div className="flex flex-col gap-3">
-              <p className="text-xs" style={{ color: "var(--color-text-suave)" }}>
+              <p className="text-xs tenue">
                 Lo que el sistema sabe de ti, tal como lo lee tu matrona.
               </p>
               <PerfilPaciente puerpera={actual} />
