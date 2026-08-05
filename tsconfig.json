@@ -9,6 +9,9 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    // Pip: src/lib/agente/ importa con extensión .ts para poder correr el script de
+    // consola con `node --env-file=.env src/lib/agente/probar.ts` sin agregar tsx.
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",

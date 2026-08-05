@@ -88,6 +88,27 @@ orden.
   10.4067/s0034-98872021001001440. Metodología: defunciones DEIS (capítulo O, CIE-9/CIE-10) +
   nacidos vivos INE.
 
+## Distribuciones de la cohorte sintética
+
+De dónde sale cada distribución de `scripts/seed.ts`. Ninguna persona es real: los nombres se
+arman por combinación de dos listas, y no hay RUT ni teléfono en ningún campo.
+
+| Variable | Cómo se distribuye | Fuente |
+|---|---|---|
+| Región | 16 regiones con la glosa oficial DEIS | Proxy: proporción de defunciones de mujeres de 15 a 49 años por región, calculada sobre `Datos/DEFUNCIONES_FUENTE_DEIS_2024_2026_04082026.csv` (DEIS, corte 04-08-2026, n=8.921). Se usa como aproximación de la distribución regional de mujeres en edad fértil, no como indicador de natalidad |
+| Establecimiento | 2 a 6 por región, público o privado según previsión | Nombre oficial del Anexo 4 "Establecimientos de procedencia", `Datos/Esquema_Registros_2026.xlsx` (Esquema de Registros DEIS 2026), campos `Nombre Oficial`, `Pertenencia al SNSS` y `Código Región` |
+| Tipo de parto | 49% cesárea si el establecimiento es público, 73% si es privado | Cifras 3 y 4 de la tabla de arriba |
+| Edad | Tramos quinquenales 15–49; modal 30–34 (29,4%), ≥35 años 23,9% | Cifras 5 y 6 |
+| Previsión | FONASA A 22% · B 26% · C 14% · D 20% · ISAPRE 18% | **Supuesto del equipo.** Los datasets entregados no traen desglose de previsión; si aparece la fuente, se reemplaza |
+| Establecimiento privado según previsión | 2% en FONASA A hasta 85% en ISAPRE | **Supuesto del equipo**, misma condición que la fila anterior |
+| Comorbilidades | SHE 10% · diabetes gestacional 12% · parto prematuro 7% | Categorías de la lista CIE-10 de Vale (abajo). **Prevalencias: supuesto del equipo**, pendientes de las cifras 7 y 8 |
+
+La proporción de cesáreas que resulta de la cohorte queda cerca del 55%, bajo el 59% nacional
+de la cifra ancla: el 59% se calcula sobre el total de partos del país y acá sale de combinar
+las tasas por dependencia del establecimiento con la mezcla público/privado supuesta. Si la
+mezcla se corrige con una fuente real, el número converge solo. La corrida imprime el
+porcentaje efectivo para que nadie cite de memoria.
+
 ## Códigos CIE-10
 
 Lista definida por Vale. **No agregar códigos por cuenta propia.**
