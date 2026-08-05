@@ -64,11 +64,21 @@ pnpm dev
 
 Requiere Node 20+ y pnpm.
 
+Sobre una base recién creada, además de `supabase/schema.sql`: correr
+`supabase/rls-off.sql` (Supabase deja RLS activo por defecto y sin eso el seed falla con
+`new row violates row level security policy`) y `supabase/migraciones/001_ficha_extendida.sql`.
+`pnpm db:seed --dry` genera y verifica la cohorte sin tocar la base ni requerir credenciales.
+
 ## Enlaces
 
 - Producción: _(pegar apenas exista, hora 1)_
-- Supabase: _(pegar link del proyecto)_
+- Supabase: [wdzvonsmouziuigfeklk](https://supabase.com/dashboard/project/wdzvonsmouziuigfeklk)
 - Canal del equipo: _(pegar)_
+
+## Deploy
+
+Variables de entorno que hay que cargar en Vercel (las tres, en Production y Preview):
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`.
 
 ## Fuentes oficiales y normativa clínica
 
