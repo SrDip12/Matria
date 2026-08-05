@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { contextoPuerpera, registrarEvaluacion } from "@/lib/db";
 import { evaluar } from "@/lib/agente/evaluar";
-import { antecedentesRelevantes, factoresRiesgo } from "@/lib/factores";
+import {
+  antecedenteTrastornoHipertensivo,
+  antecedentesRelevantes,
+  factoresRiesgo,
+} from "@/lib/factores";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +38,7 @@ export async function POST(req: Request) {
       // antecedentes que cambian cómo se lee el relato de hoy.
       factores_riesgo: factoresRiesgo(puerpera),
       antecedentes: antecedentesRelevantes(puerpera),
+      antecedenteTrastornoHipertensivo: antecedenteTrastornoHipertensivo(puerpera),
     });
   } catch (e) {
     // El agente falla ruidoso a propósito: rechaza una salida que no calza con el contrato o

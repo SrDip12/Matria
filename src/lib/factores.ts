@@ -103,6 +103,20 @@ export function factoresRiesgo(puerpera: Puerpera): string[] {
 }
 
 /**
+ * Si la puérpera tiene antecedente de trastorno hipertensivo (crónico o del embarazo actual).
+ * Es el dato que dispara la excepción única de §8 — junto a cualquier señal de §2 escala
+ * directo a alto — así que vive aparte de `factoresRiesgo()`: ese arma texto para el prompt,
+ * esto es el booleano que necesita la regla dura en `riesgo.ts` para no depender solo de que
+ * el modelo la note.
+ */
+export function antecedenteTrastornoHipertensivo(puerpera: Puerpera): boolean {
+  const f = puerpera.ficha_extendida;
+  const antecedentes = [...puerpera.comorbilidades, ...(f?.enfermedades_cronicas ?? [])];
+  if (contiene(antecedentes, "hipertens", "preeclampsia")) return true;
+  return !!f && contiene(f.enfermedades_embarazo, "hipertens", "preeclampsia", "eclampsia");
+}
+
+/**
  * Antecedentes que no son factores de §8 pero que la matrona necesita ver junto al caso:
  * lo que la puérpera toma, lo que le pasó en el parto y cómo va la lactancia.
  */

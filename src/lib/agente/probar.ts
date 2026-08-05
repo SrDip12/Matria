@@ -128,6 +128,25 @@ const CASOS: Caso[] = [
     debenSerTrue: ["ideacion_autolitica"],
     debenSerNull: ["fiebre_referida", "loquios_mal_olor", "mastalgia"],
   },
+  {
+    titulo: "Excepción única §8: antecedente hipertensivo + cefalea sin cifra",
+    contexto: {
+      dia_puerperio: 6,
+      tipo_parto: "cesarea",
+      edad: 33,
+      antecedenteTrastornoHipertensivo: true,
+    },
+    texto:
+      "matrona tengo un dolor de cabeza que no se me quita para nada desde anoche, bien fuerte. " +
+      "acá en la casa no tengo cómo tomarme la presión.",
+    // La cefalea sola, sin cifra, sería señal de alarma (medio). El antecedente hipertensivo
+    // la sube a emergencia por la regla dura de §8, exista o no el matiz en el modelo.
+    nivelMinimo: "alto",
+    nivelExacto: true,
+    sospechasEsperadas: ["preeclampsia_postparto"],
+    debenSerTrue: ["cefalea_intensa"],
+    debenSerNull: ["ideacion_autolitica", "loquios_mal_olor", "mastalgia", "disnea"],
+  },
 ];
 
 function revisar(caso: Caso, salida: SalidaAgente): string[] {
@@ -262,10 +281,30 @@ function verificarReglasDuras() {
   assert.equal(yaAlto.razonamiento, "Dos signos de emergencia de §2.");
   assert.ok(yaAlto.sospechas.includes("depresion_postparto"), "la sospecha igual se registra");
 
+  // §8, excepción única: antecedente hipertensivo + una sola señal de §2, sin cifra de
+  // presión, también fuerza alto. Antes solo vivía en el prompt.
+  const conAntecedente: SalidaAgente = {
+    ...base,
+    nivel_riesgo: "medio",
+    sospechas: ["preeclampsia_postparto"],
+    hallazgos: { ...base.hallazgos, cefalea_intensa: true },
+  };
+  const excepcion8 = aplicarReglasDuras(conAntecedente, { antecedenteTrastornoHipertensivo: true });
+  assert.equal(excepcion8.nivel_riesgo, "alto", "antecedente hipertensivo + señal de §2 debe forzar alto");
+  assert.equal(excepcion8.cita_protocolo, "§8");
+
+  // Sin el antecedente, la misma señal aislada no dispara esta regla: queda en lo que haya
+  // decidido el modelo.
+  assert.equal(
+    aplicarReglasDuras(conAntecedente).nivel_riesgo,
+    "medio",
+    "sin el antecedente no debe escalar por esta regla"
+  );
+
   // Sin gatillo, la salida pasa intacta.
   assert.deepEqual(aplicarReglasDuras(base), base);
 
-  console.log("✓ Reglas duras (§7.2 ideación, §6 tromboembolismo) verificadas");
+  console.log("✓ Reglas duras (§7.2 ideación, §6 tromboembolismo, §8 excepción) verificadas");
 }
 
 /**

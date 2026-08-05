@@ -2,11 +2,11 @@
  * Reglas duras. Corren DESPUÉS del modelo y sobre su salida ya validada.
  *
  * Están en código y no solo en el prompt porque un modelo puede tener un mal día y estas
- * dos no admiten un mal día. El prompt también las dice; esto es el respaldo determinístico.
+ * tres no admiten un mal día. El prompt también las dice; esto es el respaldo determinístico.
  *
  * Si Vale define más reglas absolutas, van acá.
  */
-import type { SalidaAgente } from "./evaluar.ts";
+import type { ContextoPuerpera, SalidaAgente } from "./evaluar.ts";
 import type { Sospecha } from "../types.ts";
 import { SECCIONES } from "./prompt.ts";
 
@@ -14,10 +14,12 @@ import { SECCIONES } from "./prompt.ts";
 const SECCION_IDEACION = "§7.2";
 /** Protocolo §6 — cualquier señal de evento tromboembólico escala directo a alto. */
 const SECCION_TROMBOEMBOLISMO = "§6";
+/** Protocolo §8 — excepción única: antecedente hipertensivo + cualquier señal de §2. */
+const SECCION_EXCEPCION_8 = "§8";
 
 // Estas citas las pone el código, así que también tienen que existir. Si alguien renumera
 // el protocolo, esto cae al arrancar en vez de mostrarle a la matrona una cita fantasma.
-for (const seccion of [SECCION_IDEACION, SECCION_TROMBOEMBOLISMO])
+for (const seccion of [SECCION_IDEACION, SECCION_TROMBOEMBOLISMO, SECCION_EXCEPCION_8])
   if (!SECCIONES.has(seccion))
     throw new Error(
       `[agente] las reglas duras citan ${seccion} y esa sección no existe en el protocolo. ` +
@@ -50,7 +52,10 @@ function escalar(
   };
 }
 
-export function aplicarReglasDuras(salida: SalidaAgente): SalidaAgente {
+export function aplicarReglasDuras(
+  salida: SalidaAgente,
+  contexto?: Pick<ContextoPuerpera, "antecedenteTrastornoHipertensivo">
+): SalidaAgente {
   let resultado = salida;
 
   if (resultado.hallazgos.ideacion_autolitica === true)
@@ -73,6 +78,22 @@ export function aplicarReglasDuras(salida: SalidaAgente): SalidaAgente {
       SECCION_TROMBOEMBOLISMO,
       "tromboembolismo",
       "señal compatible con evento tromboembólico"
+    );
+
+  // §8, excepción única: antecedente de trastorno hipertensivo del embarazo + cualquier señal
+  // de §2, aislada y sin cifra de presión, también escala directo a alto. Antes solo vivía en
+  // el prompt (factores.ts se lo nombra al modelo); acá queda con el mismo respaldo que las
+  // otras dos reglas absolutas.
+  const senialDe2 =
+    resultado.hallazgos.cefalea_intensa === true ||
+    resultado.hallazgos.alteracion_visual === true ||
+    resultado.hallazgos.dolor_epigastrico === true;
+  if (contexto?.antecedenteTrastornoHipertensivo && senialDe2)
+    resultado = escalar(
+      resultado,
+      SECCION_EXCEPCION_8,
+      "preeclampsia_postparto",
+      "antecedente de trastorno hipertensivo del embarazo + señal de §2 (excepción única de §8)"
     );
 
   return resultado;

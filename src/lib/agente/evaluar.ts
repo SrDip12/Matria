@@ -58,10 +58,19 @@ export interface ContextoPuerpera {
   factores_riesgo?: string[];
   /** Antecedentes que no son §8 pero que cambian cómo se lee el relato de hoy. */
   antecedentes?: string[];
+  /**
+   * Antecedente de trastorno hipertensivo del embarazo. Lo arma `antecedenteTrastornoHipertensivo()`
+   * de src/lib/factores.ts. Dispara la excepción única de §8 (junto a cualquier señal de §2,
+   * escala a alto sin cifra de presión) como regla dura en riesgo.ts, no solo en el prompt.
+   */
+  antecedenteTrastornoHipertensivo?: boolean;
 }
 
+// El SDK reintenta solo (maxRetries: 2) pero por defecto espera hasta 10 minutos antes de
+// fallar. Diez minutos colgado en vivo frente al jurado es peor que fallar rápido: se acota
+// a 30 s, de sobra para una salida de 1500 tokens.
 let cliente: Anthropic | null = null;
-const anthropic = () => (cliente ??= new Anthropic());
+const anthropic = () => (cliente ??= new Anthropic({ timeout: 30_000 }));
 
 // ── Validación ────────────────────────────────────────────────────────────────
 // Los tipos permitidos de cada hallazgo se leen del esquema de la herramienta, que es
@@ -242,5 +251,5 @@ export async function evaluar(
     fallar(puerperaId, `el modelo llamó a otra herramienta: ${bloque.name}`);
 
   // Las reglas duras corren después del modelo, siempre.
-  return aplicarReglasDuras(validar(bloque.input, puerperaId));
+  return aplicarReglasDuras(validar(bloque.input, puerperaId), contexto);
 }
