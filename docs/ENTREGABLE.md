@@ -26,21 +26,13 @@ cesárea, porque es lo que sostiene el "cirugía mayor sin seguimiento"._
 
 Un número, con fuente oficial verificable.
 
-> _(completar: proporción de partos por cesárea en Chile, con año)_
-
-Candidatos, en orden de fuerza para nuestro argumento:
-
-1. Proporción de partos por cesárea sobre el total de partos
-2. Reingresos hospitalarios dentro de los 42 días postparto por causa puerperal
-3. Nacimientos anuales en Chile (denominador de la población)
+> 54,3% de los partos en Chile fueron por cesárea en 2025 (43.830 de 80.654 egresos por parto; 42,1% en el sector público, 75,0% en el privado). Fuente: DEIS — Egresos hospitalarios 2025, cálculo propio del equipo sobre microdatos censales.
 
 ### `fuente_impacto_url`
 
 Tiene que ser dominio oficial. No prensa, no papers, no el chat del equipo.
 
-> _(completar: URL exacta del DEIS de donde se bajó la cifra, con fecha de descarga)_
-
-Base: `https://deis.minsal.cl/`
+> `https://deis.minsal.cl/#datosabiertos` (Portal oficial de Datos Abiertos DEIS, recurso Egresos Hospitalarios 2025, descargado el 04-08-2026).
 
 ---
 
@@ -52,9 +44,9 @@ Mínimo 2 URLs de organismos oficiales. Recomiendo 3, cuesta lo mismo.
 
 | # | Fuente | URL | Verificada |
 |---|---|---|---|
-| 1 | MINSAL — Guías Perinatales | _(completar URL exacta del PDF)_ | ☐ |
-| 2 | DEIS — Estadísticas de egresos hospitalarios | `https://deis.minsal.cl/` | ☐ |
-| 3 | _(completar: norma técnica de puerperio o Chile Crece Contigo)_ | | ☐ |
+| 1 | MINSAL — Guía Perinatal (2015) | `https://www.minsal.cl/wp-content/uploads/2015/10/GUIA-PERINATAL_2015.10.08_web.pdf-R.pdf` | ☑ |
+| 2 | DEIS — Egresos Hospitalarios | `https://deis.minsal.cl/#datosabiertos` | ☑ |
+| 3 | MINSAL — Norma Técnica del Puerperio | `https://www.minsal.cl/wp-content/uploads/2015/09/NORMA-TECNICA-PARA-LA-ATENCION-INTEGRAL-EN-EL-PUERPERIO_web.-08.10.2015-R.pdf` | ☑ |
 
 **Nadie inventa una URL.** Se abre, se verifica que cargue, se pega. Un enlace roto en este
 campo es peor que no ponerlo.
