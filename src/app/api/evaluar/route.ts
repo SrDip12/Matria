@@ -1,63 +1,49 @@
 import { NextResponse } from "next/server";
-import { contextoPuerpera, registrarEvaluacion, type ContextoPuerpera, type SalidaAgente } from "@/lib/db";
+import { contextoPuerpera, registrarEvaluacion } from "@/lib/db";
+import { evaluar } from "@/lib/agente/evaluar";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Stub mientras `evaluar(puerperaId, texto)` de src/lib/agente/ no existe (es de Pip).
- * Devuelve una salida válida según el esquema de docs/CONTRATOS.md §4. No interpreta el
- * relato: solo deja a la vista que la ficha real de la puérpera llega hasta acá.
- * Al conectar el agente: borrar esto y reemplazar la llamada por `await evaluar(puerpera_id, texto)`.
+ * Entra un mensaje de la puérpera, sale la evaluación del agente y la alerta si corresponde.
+ * Es el recorrido completo de la demo en una sola llamada.
+ *
+ * `contextoPuerpera()` devuelve la ficha completa y `evaluar()` espera los factores que
+ * modifican el riesgo basal (protocolo §8) más el historial. Son dos formas distintas y la
+ * traducción va acá, explícita, que es el único lugar donde la base y el agente se tocan.
  */
-async function evaluarStub(contexto: ContextoPuerpera, texto: string): Promise<SalidaAgente> {
-  const { puerpera, evaluaciones_previas, alertas_abiertas } = contexto;
-  return {
-    hallazgos: {
-      fiebre_referida: null,
-      temperatura_c: null,
-      dolor_abdominal: null,
-      sangrado_aumentado: null,
-      loquios_mal_olor: null,
-      cefalea_intensa: null,
-      alteracion_visual: null,
-      dolor_epigastrico: null,
-      mastalgia: null,
-      mastalgia_unilateral: null,
-      eritema_mamario: null,
-      dolor_herida: null,
-      secrecion_herida: null,
-      dolor_pantorrilla_unilateral: null,
-      disnea: null,
-      animo_bajo: null,
-      anhedonia: null,
-      ideacion_autolitica: null,
-      dificultad_lactancia: null,
-      texto_relevante: texto,
-    },
-    nivel_riesgo: "medio",
-    sospechas: ["sin_hallazgos"],
-    cita_protocolo: "§1.1",
-    razonamiento:
-      `Agente no conectado: el relato no fue interpretado. Contexto disponible: día ` +
-      `${puerpera.dia_puerperio} de puerperio, parto ${puerpera.tipo_parto}, ${puerpera.edad} años` +
-      `${puerpera.comorbilidades.length ? `, antecedentes: ${puerpera.comorbilidades.join(", ")}` : ""}` +
-      `, ${evaluaciones_previas.length} evaluaciones previas y ${alertas_abiertas.length} alertas abiertas.`,
-    accion_sugerida: "Revisar el mensaje manualmente mientras el agente no está conectado.",
-  };
-}
-
 export async function POST(req: Request) {
   const { puerpera_id, texto } = (await req.json()) as { puerpera_id?: string; texto?: string };
 
   if (!puerpera_id || typeof texto !== "string" || texto.trim() === "")
     return NextResponse.json({ error: "puerpera_id y texto son obligatorios" }, { status: 400 });
 
-  const contexto = await contextoPuerpera(puerpera_id);
-  const salida = await evaluarStub(contexto, texto.trim());
+  const relato = texto.trim();
+  const { puerpera, evaluaciones_previas } = await contextoPuerpera(puerpera_id);
+
+  let salida;
+  try {
+    salida = await evaluar(puerpera_id, relato, {
+      dia_puerperio: puerpera.dia_puerperio,
+      tipo_parto: puerpera.tipo_parto,
+      edad: puerpera.edad,
+      comorbilidades: puerpera.comorbilidades,
+      evaluaciones_previas,
+    });
+  } catch (e) {
+    // El agente falla ruidoso a propósito: rechaza una salida que no calza con el contrato o
+    // que cita una sección inexistente. Acá eso no se maquilla ni se persiste a medias — se le
+    // dice al panel que este mensaje quedó sin interpretar, que es honesto y es recuperable.
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "el agente no pudo evaluar el mensaje" },
+      { status: 502 }
+    );
+  }
+
   const { evaluacion, alerta } = await registrarEvaluacion(
     puerpera_id,
-    contexto.puerpera.dia_puerperio,
-    texto.trim(),
+    puerpera.dia_puerperio,
+    relato,
     salida
   );
 

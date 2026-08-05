@@ -12,6 +12,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { evaluar, type ContextoPuerpera } from "../src/lib/agente/evaluar.ts";
+import type { Sospecha } from "../src/lib/types.ts";
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,23 +31,43 @@ type FilaEvaluacion = {
   puerpera_id: string;
   mensaje_id: string;
   dia_puerperio: number;
-  nivel_riesgo: string;
-  sospechas: string[];
+  nivel_riesgo: "bajo" | "medio" | "alto";
+  sospechas: Sospecha[];
   cita_protocolo: string;
+  razonamiento: string;
 };
 
 /**
- * El puente que hoy no existe en el código. `contextoPuerpera()` de src/lib/db devuelve
- * `{ puerpera, evaluaciones_previas, alertas_abiertas }`, y `evaluar()` espera cuatro
- * escalares. Son dos interfaces distintas con el mismo nombre; esta función es la
- * traducción, y es lo que hay que meter en src/app/api/evaluar/route.ts al conectar.
+ * Misma traducción que hace src/app/api/evaluar/route.ts. Si las dos se separan, esto deja de
+ * verificar lo que corre en producción.
  */
-const contextoParaAgente = (p: FilaPuerpera, dia: number): ContextoPuerpera => ({
+const contextoParaAgente = (
+  p: FilaPuerpera,
+  dia: number,
+  previas: FilaEvaluacion[]
+): ContextoPuerpera => ({
   dia_puerperio: dia,
   tipo_parto: p.tipo_parto,
   edad: p.edad,
   comorbilidades: p.comorbilidades,
+  evaluaciones_previas: previas,
 });
+
+/**
+ * Historial de esa puérpera **antes** del día que se está evaluando. El corte importa: si se
+ * pasan todas sus evaluaciones, entra la que el seed escribió para este mismo mensaje y el
+ * agente estaría leyendo la respuesta en vez de deducirla.
+ */
+async function previasDe(puerperaId: string, dia: number): Promise<FilaEvaluacion[]> {
+  const { data, error } = await db
+    .from("evaluaciones")
+    .select("puerpera_id,mensaje_id,dia_puerperio,nivel_riesgo,sospechas,cita_protocolo,razonamiento")
+    .eq("puerpera_id", puerperaId)
+    .lt("dia_puerperio", dia)
+    .order("dia_puerperio", { ascending: true });
+  if (error) throw new Error(`previas: ${error.message}`);
+  return (data ?? []) as FilaEvaluacion[];
+}
 
 async function main() {
   const n = Number(process.argv[2] ?? 8);
@@ -122,7 +143,8 @@ async function main() {
     }
 
     const esperada = ev.sospechas.find((s) => s !== "sin_hallazgos") ?? "sin_hallazgos";
-    const salida = await evaluar(p.id, texto, contextoParaAgente(p, ev.dia_puerperio));
+    const previas = await previasDe(p.id, ev.dia_puerperio);
+    const salida = await evaluar(p.id, texto, contextoParaAgente(p, ev.dia_puerperio, previas));
     const obtenida = salida.sospechas.find((s) => s !== "sin_hallazgos") ?? "sin_hallazgos";
 
     const okSospecha = obtenida === esperada;

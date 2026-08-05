@@ -26,6 +26,19 @@ export type SalidaAgente = Pick<
 > & { accion_sugerida: string };
 
 /**
+ * Lo que el agente usa de una evaluación anterior. Sin ids ni fechas: acá no hay base de datos.
+ * Es un subconjunto de `Evaluacion`, así que lo que devuelve `contextoPuerpera()` de src/lib/db
+ * calza directo sin mapear.
+ */
+export type EvaluacionPrevia = Pick<
+  Evaluacion,
+  "dia_puerperio" | "nivel_riesgo" | "sospechas" | "cita_protocolo" | "razonamiento"
+>;
+
+/** Más que esto no aporta y sí encarece cada llamada. Se toman las más recientes. */
+const MAX_HISTORIAL = 8;
+
+/**
  * Antecedentes de la ficha, opcionales. Son los factores que modifican el riesgo basal
  * (protocolo §8): la misma señal pesa distinto en una cesárea que en un parto vaginal.
  * Si Rodo los pasa, entran al contexto del modelo; si no, el agente evalúa solo el relato.
@@ -35,6 +48,12 @@ export interface ContextoPuerpera {
   tipo_parto?: TipoParto;
   edad?: number;
   comorbilidades?: string[];
+  /**
+   * Evaluaciones anteriores de la misma puérpera, de la más antigua a la más reciente.
+   * Es lo que convierte esto en seguimiento longitudinal y no en una sucesión de mensajes
+   * sueltos: una señal que ya venía apareciendo pesa distinto que la misma señal aislada.
+   */
+  evaluaciones_previas?: EvaluacionPrevia[];
 }
 
 let cliente: Anthropic | null = null;
@@ -123,6 +142,33 @@ function validar(bruto: unknown, puerperaId: string): SalidaAgente {
 
 // ── Llamada ───────────────────────────────────────────────────────────────────
 
+/**
+ * El historial va en el mensaje de usuario, igual que la ficha, y no en el system: el system
+ * es el prefijo cacheado y esto cambia en cada llamada.
+ *
+ * El encuadre importa tanto como los datos. Sin él el modelo tiende a dos errores: arrastrar la
+ * sospecha anterior aunque el relato de hoy no la sostenga, y volver a levantar una alerta que
+ * la matrona ya atendió. Se le dice explícitamente que esto pondera, no que reemplaza.
+ */
+function historial(evs: EvaluacionPrevia[]): string {
+  const lineas = evs
+    .slice(-MAX_HISTORIAL)
+    .map(
+      (e) =>
+        `- Día ${e.dia_puerperio} · ${e.nivel_riesgo} · ${e.sospechas.join(", ")} · ${e.cita_protocolo}\n` +
+        `  ${e.razonamiento}`
+    );
+
+  return (
+    `Evaluaciones anteriores de esta misma puérpera, de la más antigua a la más reciente:\n` +
+    `${lineas.join("\n")}\n\n` +
+    `Ese historial es para ponderar el relato de hoy, no para volver a alertar por lo de antes. ` +
+    `Una señal que ya venía apareciendo, o que empeora respecto de la anterior, pesa más que la ` +
+    `misma señal aislada. Una que no se repite hoy, no se arrastra: evalúa el relato de hoy y no ` +
+    `mantengas una sospecha anterior si el texto de hoy no la sostiene.`
+  );
+}
+
 function mensajeUsuario(texto: string, ctx?: ContextoPuerpera): string {
   const ficha: string[] = [];
   if (ctx?.dia_puerperio !== undefined) ficha.push(`Día de puerperio: ${ctx.dia_puerperio}`);
@@ -134,7 +180,12 @@ function mensajeUsuario(texto: string, ctx?: ContextoPuerpera): string {
     ? `Ficha de la puérpera:\n${ficha.join("\n")}`
     : "Ficha de la puérpera: no disponible. Evalúa solo el relato y no supongas el día de puerperio.";
 
-  return `${cabecera}\n\nRelato de la puérpera:\n"""\n${texto}\n"""`;
+  const previas = ctx?.evaluaciones_previas ?? [];
+  const bloques = [cabecera];
+  if (previas.length) bloques.push(historial(previas));
+  bloques.push(`Relato de la puérpera:\n"""\n${texto}\n"""`);
+
+  return bloques.join("\n\n");
 }
 
 /**

@@ -33,8 +33,10 @@ export const PROTOCOLO = leerProtocolo();
  * Secciones que existen de verdad en el protocolo, leídas de sus encabezados.
  * Se usan para dos cosas: listárselas al modelo y rechazar citas inventadas en evaluar.ts.
  */
+// El `\**` tolera que el encabezado venga en negrita: Vale escribe "## **§3.1 Endometritis**"
+// y sin eso no calza ninguna sección, SECCIONES queda vacío y el agente lanza al importarse.
 export const SECCIONES: ReadonlySet<string> = new Set(
-  [...PROTOCOLO.matchAll(/^#{1,6}\s*(§\d+(?:\.\d+)*)/gm)].map((m) => m[1])
+  [...PROTOCOLO.matchAll(/^#{1,6}\s*\**\s*(§\d+(?:\.\d+)*)/gm)].map((m) => m[1])
 );
 
 if (SECCIONES.size === 0) {

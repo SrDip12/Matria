@@ -1,2 +1,6 @@
+# Los microdatos DEIS pesan 95 MB y no se leen en runtime: el seed tiene las
+# distribuciones horneadas como constantes y corre desde la máquina de alguien.
 Datos
-docs
+
+# docs/ NO va acá. El agente lee docs/PROTOCOLO_CLINICO.md del disco en runtime
+# (src/lib/agente/prompt.ts) y sin ese archivo lanza al importarse. Pesa 96 KB en total.
