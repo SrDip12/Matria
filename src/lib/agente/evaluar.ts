@@ -13,8 +13,8 @@ import { HERRAMIENTA } from "./herramienta.ts";
 import { SECCIONES, SYSTEM } from "./prompt.ts";
 import { aplicarReglasDuras } from "./riesgo.ts";
 
-/** Decidido antes del evento, no se cambia. */
-const MODELO = "claude-sonnet-4-6";
+/** Cambiado a Haiku por pedido del equipo (CLAUDE.md §3 dice Sonnet 4.6: avisar en el canal). */
+const MODELO = "claude-haiku-4-5";
 
 /**
  * Lo que el agente produce. Misma forma que `SalidaAgente` de src/lib/db:
@@ -228,7 +228,7 @@ export async function evaluar(
     tools: [HERRAMIENTA],
     // Forzado: la salida nunca es texto parseado.
     tool_choice: { type: "tool", name: HERRAMIENTA.name },
-    thinking: { type: "disabled" },
+    // Haiku 4.5 no piensa salvo que se le pida: no va parámetro `thinking`.
     messages: [{ role: "user", content: mensajeUsuario(texto.trim(), contexto) }],
   });
 
