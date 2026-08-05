@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ETIQUETA_PARTO } from "@/lib/formato";
+import { ETIQUETA_PARTO, partirEtiqueta } from "@/lib/formato";
 import type { Mensaje, Puerpera } from "@/lib/types";
 
 interface ConversacionProps {
@@ -29,13 +29,19 @@ export function Conversacion({ puerpera, mensajes, enviando, onEnviar }: Convers
     );
   }
 
+  const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
+
   return (
     <section className="flex h-full flex-col">
       <header className="border-b p-4" style={{ borderColor: "var(--color-border)" }}>
         <h2 className="font-medium">
-          {puerpera.nombre} · día {puerpera.dia_puerperio}
+          {etiqueta}{" "}
+          <span className="tabular" style={{ color: "var(--color-text-suave)" }}>
+            día {puerpera.dia_puerperio}
+          </span>
         </h2>
         <p className="tabular text-sm" style={{ color: "var(--color-text-suave)" }}>
+          {codigo ? `${codigo} · ` : ""}
           {ETIQUETA_PARTO[puerpera.tipo_parto]} · {puerpera.edad} años
         </p>
       </header>
@@ -66,7 +72,7 @@ export function Conversacion({ puerpera, mensajes, enviando, onEnviar }: Convers
       <div className="flex gap-2 border-t p-4" style={{ borderColor: "var(--color-border)" }}>
         <input
           className="input flex-1"
-          placeholder={`escribir como ${puerpera.nombre}`}
+          placeholder={`escribir como ${etiqueta}`}
           value={texto}
           disabled={enviando}
           onChange={(evento) => setTexto(evento.target.value)}

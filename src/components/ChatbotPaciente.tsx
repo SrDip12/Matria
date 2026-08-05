@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Conversacion } from "@/components/Conversacion";
+import { partirEtiqueta } from "@/lib/formato";
 import { useConversacion } from "@/lib/hooks/useConversacion";
 import type { FilaPanel } from "@/lib/types";
 
@@ -31,11 +32,14 @@ export function ChatbotPaciente({ filas, refrescarPanel }: ChatbotPacienteProps)
           value={seleccionadaId ?? ""}
           onChange={(evento) => setSeleccionadaId(evento.target.value)}
         >
-          {filas.map((fila) => (
-            <option key={fila.puerpera.id} value={fila.puerpera.id}>
-              {fila.puerpera.nombre} · día {fila.puerpera.dia_puerperio}
-            </option>
-          ))}
+          {filas.map((fila) => {
+            const [etiqueta, codigo] = partirEtiqueta(fila.puerpera.nombre);
+            return (
+              <option key={fila.puerpera.id} value={fila.puerpera.id}>
+                {codigo ? `${etiqueta} (${codigo})` : etiqueta} · día {fila.puerpera.dia_puerperio}
+              </option>
+            );
+          })}
         </select>
       </div>
       <div className="min-h-0 flex-1">

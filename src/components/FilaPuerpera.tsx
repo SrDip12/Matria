@@ -1,7 +1,7 @@
 "use client";
 
 import { Franja42 } from "@/components/Franja42";
-import { ETIQUETA_PARTO } from "@/lib/formato";
+import { ETIQUETA_PARTO, partirEtiqueta } from "@/lib/formato";
 import { NIVEL_COLOR, TONO_RIESGO } from "@/lib/riesgo";
 import { ETIQUETA_RIESGO, type FilaPanel } from "@/lib/types";
 
@@ -14,6 +14,7 @@ interface FilaPuerperaProps {
 
 export function FilaPuerpera({ fila, seleccionada, onSeleccionar, onResolverAlerta }: FilaPuerperaProps) {
   const { puerpera, ultima_evaluacion, alertas_pendientes, nivel_riesgo, franja } = fila;
+  const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
 
   return (
     <div
@@ -32,8 +33,9 @@ export function FilaPuerpera({ fila, seleccionada, onSeleccionar, onResolverAler
           style={{ background: NIVEL_COLOR[nivel_riesgo] }}
           aria-hidden
         />
-        <span className="font-medium">{puerpera.nombre}</span>
+        <span className="font-medium">{etiqueta}</span>
         <span className="tabular text-sm" style={{ color: "var(--color-text-suave)" }}>
+          {codigo ? `${codigo} · ` : ""}
           {puerpera.edad}a · {ETIQUETA_PARTO[puerpera.tipo_parto]} · d.{puerpera.dia_puerperio}
         </span>
       </div>
