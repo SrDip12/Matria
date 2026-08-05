@@ -16,8 +16,8 @@ export function Franja42({ franja, diaActual }: Franja42Props) {
           <div
             key={dia}
             title={nivel ? `Día ${dia} — riesgo ${nivel}` : `Día ${dia} — sin contacto`}
-            className={esActual ? "h-3 flex-1 ring-1 ring-[var(--color-accent)]" : "h-3 flex-1"}
-            style={{ background: nivel ? NIVEL_COLOR[nivel] : "var(--color-divider)" }}
+            className={esActual ? "h-3 flex-1 ring-1 ring-[var(--marca-600)]" : "h-3 flex-1"}
+            style={{ background: nivel ? NIVEL_COLOR[nivel] : "var(--color-border)" }}
           />
         );
       })}
