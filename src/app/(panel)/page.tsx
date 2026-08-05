@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChatbotPaciente } from "@/components/ChatbotPaciente";
 import { Conversacion } from "@/components/Conversacion";
 import { FichaOnboarding } from "@/components/FichaOnboarding";
 import { Inicio, type Demo } from "@/components/Inicio";
@@ -21,7 +20,7 @@ function Dashboard() {
   }, [filas, seleccionadaId]);
 
   const puerpera = filas.find((fila) => fila.puerpera.id === seleccionadaId)?.puerpera ?? null;
-  const { mensajes, enviando, enviar } = useConversacion(seleccionadaId, refrescar);
+  const { mensajes, enviando, error, enviar } = useConversacion(seleccionadaId, refrescar);
 
   return (
     <div className="flex flex-1">
@@ -30,6 +29,7 @@ function Dashboard() {
           puerpera={puerpera}
           mensajes={mensajes}
           enviando={enviando}
+          error={error}
           onEnviar={enviar}
         />
       </div>
@@ -55,8 +55,7 @@ function Dashboard() {
 function DemoPaciente() {
   const { filas, refrescar } = usePanel();
   const [puerpera, setPuerpera] = useState<Puerpera | null>(null);
-  const [panel, setPanel] = useState<"chat" | "perfil">("chat");
-  const { mensajes, enviando, enviar } = useConversacion(puerpera?.id ?? null, refrescar);
+  const { mensajes, enviando, error, enviar } = useConversacion(puerpera?.id ?? null, refrescar);
 
   if (!puerpera) return <FichaOnboarding onListo={setPuerpera} />;
 
@@ -70,32 +69,16 @@ function DemoPaciente() {
           puerpera={actual}
           mensajes={mensajes}
           enviando={enviando}
+          error={error}
           onEnviar={enviar}
         />
       </div>
       <div className="flex w-[45%] flex-col gap-3 overflow-y-auto p-4">
-        <nav className="flex gap-1">
-          {(["chat", "perfil"] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPanel(p)}
-              className="rounded-[var(--radius-md)] border px-2.5 py-1 text-xs"
-              style={{
-                borderColor: panel === p ? "var(--marca-900)" : "var(--color-border)",
-                background: panel === p ? "var(--marca-900)" : "transparent",
-                color: panel === p ? "#ffffff" : "var(--color-text)",
-              }}
-            >
-              {p === "chat" ? "Mi seguimiento" : "Mi perfil"}
-            </button>
-          ))}
-        </nav>
-        {panel === "perfil" ? (
-          <PerfilPaciente puerpera={actual} />
-        ) : (
-          <ChatbotPaciente filas={filas} refrescarPanel={refrescar} />
-        )}
+        <h2 className="text-sm font-medium">Mi perfil</h2>
+        <p className="text-xs" style={{ color: "var(--color-text-suave)" }}>
+          Lo que el sistema sabe de ti, tal como lo lee tu matrona.
+        </p>
+        <PerfilPaciente puerpera={actual} />
       </div>
     </div>
   );

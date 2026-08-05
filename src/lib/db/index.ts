@@ -259,6 +259,8 @@ export async function registrarEvaluacion(
     .single();
   fallar("evaluacion", e3);
 
+  await responder(puerperaId, dia_puerperio, salida.nivel_riesgo);
+
   if (salida.nivel_riesgo === "bajo") return { evaluacion: evaluacion as Evaluacion, alerta: null };
 
   const { data: alerta, error: e4 } = await supabase
@@ -276,6 +278,33 @@ export async function registrarEvaluacion(
   fallar("alerta", e4);
 
   return { evaluacion: evaluacion as Evaluacion, alerta: alerta as Alerta };
+}
+
+/**
+ * Respuesta que ella ve en el chat. Sin esto un mensaje sin hallazgos no produce nada visible
+ * y la puérpera queda escribiendo contra una pared.
+ *
+ * Texto fijo por nivel, no generado: la respuesta a la puérpera no es la `accion_sugerida`, que
+ * está escrita para la matrona. No afirma un diagnóstico y no indica tratamiento. Para `alto` el
+ * mensaje de acudir a urgencias es el que el propio protocolo §1.1 define para esa categoría.
+ */
+const RESPUESTA: Record<NivelRiesgo, string> = {
+  bajo:
+    "Gracias por contarme cómo estás. En lo que me escribiste no aparecen señales de alarma; " +
+    "seguimos con el control habitual. Escríbeme cuando quieras.",
+  medio:
+    "Gracias por contarme. Registré una señal que tu matrona tiene que revisar hoy: ya quedó " +
+    "marcada en su panel y ella te va a contactar.",
+  alto:
+    "Lo que me cuentas es una señal que no puede esperar. Tu matrona ya quedó alertada y te va a " +
+    "llamar. Acude a urgencias de inmediato.",
+};
+
+async function responder(puerperaId: string, dia_puerperio: number, nivel: NivelRiesgo) {
+  const { error } = await supabase
+    .from("mensajes")
+    .insert({ puerpera_id: puerperaId, autor: "sistema", texto: RESPUESTA[nivel], dia_puerperio });
+  fallar("respuesta", error);
 }
 
 /** Titular de la fila del panel. Es una sospecha, nunca un diagnóstico. */

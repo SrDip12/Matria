@@ -6,6 +6,9 @@ import type { Mensaje } from "@/lib/types";
 export function useConversacion(puerperaId: string | null, onEvaluado?: () => void) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [enviando, setEnviando] = useState(false);
+  // El agente falla ruidoso y /api/evaluar devuelve 502 sin guardar nada. Sin esto la pantalla
+  // se queda igual que antes de escribir y parece que no pasó nada.
+  const [error, setError] = useState<string | null>(null);
 
   const refrescar = useCallback(async () => {
     if (!puerperaId) {
@@ -25,11 +28,20 @@ export function useConversacion(puerperaId: string | null, onEvaluado?: () => vo
     async (texto: string) => {
       if (!puerperaId) return;
       setEnviando(true);
-      await fetch("/api/evaluar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ puerpera_id: puerperaId, texto }),
-      });
+      setError(null);
+      try {
+        const respuesta = await fetch("/api/evaluar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ puerpera_id: puerperaId, texto }),
+        });
+        if (!respuesta.ok) {
+          const cuerpo = await respuesta.json().catch(() => ({}));
+          throw new Error(cuerpo.error ?? "el mensaje no se pudo interpretar");
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "el mensaje no se pudo interpretar");
+      }
       await refrescar();
       setEnviando(false);
       onEvaluado?.();
@@ -37,5 +49,5 @@ export function useConversacion(puerperaId: string | null, onEvaluado?: () => vo
     [puerperaId, refrescar, onEvaluado]
   );
 
-  return { mensajes, enviando, enviar };
+  return { mensajes, enviando, error, enviar };
 }
