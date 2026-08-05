@@ -1,31 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Burbuja } from "@/components/Conversacion";
 import {
   FICHA_VACIA,
-  imc,
   type FichaExtendida,
-  type Habito,
   type Prevision,
   type Puerpera,
   type TipoParto,
 } from "@/lib/types";
 
 /**
- * Onboarding de la puérpera. Un solo formulario por secciones, no un asistente por pasos:
- * ella lo llena una vez, con una guagua en brazos, y un asistente de seis pantallas la pierde
- * antes de la tercera.
+ * Ficha de ingreso, hecha conversando. Antes era un formulario de treinta campos en una sola
+ * pantalla: se veía como un trámite y ella lo abandonaba a la mitad. Las preguntas son las
+ * mismas y el dato que sale es el mismo, pero llegan de a una y con las palabras de ella.
  *
- * Solo nombre, edad y fecha del parto son obligatorios. Todo lo demás puede quedar en blanco y
- * se guarda como null. Un campo sin responder no es un "no": es un dato que nadie preguntó, y
- * así lo va a leer la matrona.
+ * Las preguntas están escritas acá y no las genera el modelo: son campos conocidos con forma
+ * conocida, así que un guion determinístico entrega el mismo dato estructurado sin una llamada
+ * más ni una interpretación que se pueda equivocar. El agente clínico sigue siendo el de
+ * src/lib/agente, que evalúa relatos, no el que llena fichas.
  *
- * Todo campo lleva un ejemplo. Media ficha en blanco no es que a ella no le importe: es que no
- * sabía qué se esperaba ahí. El ejemplo es lo que convierte "Antecedentes ginecológicos" en una
- * pregunta que se puede responder.
+ * Solo nombre, edad, fecha y tipo de parto son obligatorios. Todo lo demás se puede saltar y
+ * queda en null: un campo sin responder no es un "no", es un dato que nadie preguntó.
  */
 
-const PREVISIONES: { id: Prevision; etiqueta: string }[] = [
+type Valor = string | number | boolean | string[] | null;
+type Respuestas = Record<string, Valor>;
+
+type Tipo = "texto" | "numero" | "fecha" | "lista" | "opciones" | "siNo";
+
+interface Pregunta {
+  id: string;
+  destino: "base" | "ficha";
+  tipo: Tipo;
+  /** Lo que dice el agente. */
+  texto: string;
+  ejemplo?: string;
+  opciones?: { id: string; etiqueta: string }[];
+  obligatoria?: boolean;
+  /** Preguntas que solo tienen sentido según lo ya respondido. */
+  si?: (r: Respuestas) => boolean;
+}
+
+const PREVISIONES = [
   { id: "fonasa_a", etiqueta: "Fonasa A" },
   { id: "fonasa_b", etiqueta: "Fonasa B" },
   { id: "fonasa_c", etiqueta: "Fonasa C" },
@@ -33,11 +50,255 @@ const PREVISIONES: { id: Prevision; etiqueta: string }[] = [
   { id: "isapre", etiqueta: "Isapre" },
 ];
 
-const HABITOS: { id: Habito; etiqueta: string }[] = [
+const HABITOS = [
   { id: "no", etiqueta: "No" },
-  { id: "ocasional", etiqueta: "Ocasional" },
-  { id: "habitual", etiqueta: "Habitual" },
+  { id: "ocasional", etiqueta: "A veces" },
+  { id: "habitual", etiqueta: "Seguido" },
 ];
+
+const SI_NO = [
+  { id: "si", etiqueta: "Sí" },
+  { id: "no", etiqueta: "No" },
+];
+
+const PREGUNTAS: Pregunta[] = [
+  // Quién es
+  {
+    id: "nombre",
+    destino: "base",
+    tipo: "texto",
+    texto: "Para partir, ¿cómo te llamas? Con tu nombre de pila me basta.",
+    ejemplo: "María José",
+    obligatoria: true,
+  },
+  {
+    id: "edad",
+    destino: "base",
+    tipo: "numero",
+    texto: "¿Cuántos años tienes?",
+    ejemplo: "28",
+    obligatoria: true,
+  },
+
+  // El parto
+  {
+    id: "fecha_parto",
+    destino: "base",
+    tipo: "fecha",
+    texto: "¿Qué día nació tu guagua?",
+    obligatoria: true,
+  },
+  {
+    id: "tipo_parto",
+    destino: "base",
+    tipo: "opciones",
+    texto: "¿Fue parto vaginal o cesárea?",
+    opciones: [
+      { id: "vaginal", etiqueta: "Vaginal" },
+      { id: "cesarea", etiqueta: "Cesárea" },
+    ],
+    obligatoria: true,
+  },
+  {
+    id: "semanas_gestacion",
+    destino: "ficha",
+    tipo: "numero",
+    texto: "¿Con cuántas semanas nació? Si no te acuerdas exacto, ponle lo más cercano.",
+    ejemplo: "39",
+  },
+  {
+    id: "horas_trabajo_parto",
+    destino: "ficha",
+    tipo: "numero",
+    texto: "¿Cuántas horas estuviste en trabajo de parto, más o menos?",
+    ejemplo: "8",
+  },
+  {
+    id: "embarazo_multiple",
+    destino: "ficha",
+    tipo: "siNo",
+    texto: "¿Venían dos o más? (mellizos, trillizos)",
+  },
+  {
+    id: "uso_anestesia",
+    destino: "ficha",
+    tipo: "siNo",
+    texto: "¿Te pusieron anestesia? Por ejemplo, la inyección en la espalda.",
+  },
+  {
+    id: "tipo_anestesia",
+    destino: "ficha",
+    tipo: "texto",
+    texto: "¿Sabes cuál te pusieron? Si no te acuerdas, sáltala tranquila.",
+    ejemplo: "peridural",
+    si: (r) => r.uso_anestesia === true,
+  },
+  {
+    id: "episiotomia",
+    destino: "ficha",
+    tipo: "siNo",
+    texto: "¿Te hicieron el corte para ayudar a que saliera la guagua? Se llama episiotomía.",
+    si: (r) => r.tipo_parto === "vaginal",
+  },
+  {
+    id: "complicaciones_parto",
+    destino: "ficha",
+    tipo: "lista",
+    texto: "¿Hubo alguna complicación en el parto? Si fueron varias, sepáralas con coma.",
+    ejemplo: "desgarro, hemorragia",
+  },
+  {
+    id: "apego_inmediato",
+    destino: "ficha",
+    tipo: "siNo",
+    texto: "¿Te la pusieron en el pecho apenas nació?",
+  },
+  {
+    id: "fecha_inicio_lactancia",
+    destino: "ficha",
+    tipo: "fecha",
+    texto: "¿Qué día empezaste a darle pecho?",
+  },
+
+  // Su salud
+  {
+    id: "peso_kg",
+    destino: "ficha",
+    tipo: "numero",
+    texto: "Ahora unas cosas de ti. ¿Cuánto pesas hoy, más o menos? En kilos.",
+    ejemplo: "68.5",
+  },
+  {
+    id: "talla_cm",
+    destino: "ficha",
+    tipo: "numero",
+    texto: "¿Y cuánto mides, en centímetros?",
+    ejemplo: "162",
+  },
+  {
+    id: "enfermedades_cronicas",
+    destino: "ficha",
+    tipo: "lista",
+    texto: "¿Tienes alguna enfermedad de antes del embarazo? Sepáralas con coma.",
+    ejemplo: "hipertensión, diabetes",
+  },
+  {
+    id: "enfermedades_embarazo",
+    destino: "ficha",
+    tipo: "lista",
+    texto: "¿Y durante el embarazo, te dijeron que tenías algo?",
+    ejemplo: "diabetes gestacional, preeclampsia",
+  },
+  {
+    id: "medicamentos_habituales",
+    destino: "ficha",
+    tipo: "lista",
+    texto: "¿Tomas algún remedio seguido?",
+    ejemplo: "ácido fólico, fierro",
+  },
+  {
+    id: "antecedentes_familiares",
+    destino: "ficha",
+    tipo: "lista",
+    texto: "¿Sabes de enfermedades en tu familia directa? Mamá, papá, hermanas.",
+    ejemplo: "madre con hipertensión",
+  },
+  {
+    id: "antecedentes_ginecologicos",
+    destino: "ficha",
+    tipo: "lista",
+    texto: "¿Algún antecedente ginecológico que te hayan dicho?",
+    ejemplo: "quiste ovárico, cesárea anterior",
+  },
+  {
+    id: "paridad",
+    destino: "ficha",
+    tipo: "numero",
+    texto: "¿Cuántos partos tuviste antes de este?",
+    ejemplo: "1",
+  },
+  {
+    id: "fecha_ultima_regla",
+    destino: "ficha",
+    tipo: "fecha",
+    texto: "¿Te acuerdas de la fecha de tu última regla antes del embarazo?",
+  },
+  {
+    id: "tabaco",
+    destino: "ficha",
+    tipo: "opciones",
+    texto:
+      "Durante el embarazo, ¿fumaste? Te lo pregunto para cuidarte mejor, acá nadie te va a retar.",
+    opciones: HABITOS,
+  },
+  {
+    id: "alcohol",
+    destino: "ficha",
+    tipo: "opciones",
+    texto: "¿Y tomaste alcohol durante el embarazo?",
+    opciones: HABITOS,
+  },
+  {
+    id: "drogas",
+    destino: "ficha",
+    tipo: "opciones",
+    texto: "¿Consumiste alguna droga durante el embarazo?",
+    opciones: HABITOS,
+  },
+
+  // Dónde y con quién
+  {
+    id: "prevision",
+    destino: "base",
+    tipo: "opciones",
+    texto: "¿Qué previsión tienes? Sale en tu carnet.",
+    opciones: PREVISIONES,
+  },
+  {
+    id: "region",
+    destino: "base",
+    tipo: "texto",
+    texto: "¿En qué región vives?",
+    ejemplo: "Metropolitana",
+  },
+  {
+    id: "establecimiento",
+    destino: "base",
+    tipo: "texto",
+    texto: "¿Dónde tuviste a tu guagua?",
+    ejemplo: "Hospital San José",
+  },
+  {
+    id: "contacto_emergencia_nombre",
+    destino: "ficha",
+    tipo: "texto",
+    texto: "Última parte. Si alguna vez no te ubicamos, ¿a quién llamamos?",
+    ejemplo: "Carolina Pérez",
+  },
+  {
+    id: "contacto_emergencia_relacion",
+    destino: "ficha",
+    tipo: "texto",
+    texto: "¿Qué es tuya?",
+    ejemplo: "pareja",
+    si: (r) => typeof r.contacto_emergencia_nombre === "string",
+  },
+  {
+    id: "contacto_emergencia_telefono",
+    destino: "ficha",
+    tipo: "texto",
+    texto: "¿Y su teléfono?",
+    ejemplo: "+56 9 8765 4321",
+    si: (r) => typeof r.contacto_emergencia_nombre === "string",
+  },
+];
+
+const SALUDO =
+  "Hola, soy Matria. Te voy a acompañar estos 42 días después del parto: tú me cuentas cómo " +
+  "estás y yo aviso a tu matrona cuando algo necesite que ella lo mire.";
+const SALUDO_2 =
+  "Antes de empezar te voy a hacer unas preguntas. Son varias, pero cortas, y todas menos las " +
+  "primeras las puedes saltar. Lo que no me contestes queda como no preguntado, nunca como un no.";
 
 const lista = (texto: string) =>
   texto
@@ -45,108 +306,13 @@ const lista = (texto: string) =>
     .map((t) => t.trim())
     .filter(Boolean);
 
-function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return (
-    <fieldset
-      className="rounded-[var(--radius-md)] border p-4"
-      style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
-    >
-      <legend className="px-2 text-sm font-medium" style={{ color: "var(--color-text-suave)" }}>
-        {titulo}
-      </legend>
-      <div className="grid gap-3 sm:grid-cols-2">{children}</div>
-    </fieldset>
-  );
-}
-
-function Campo({
-  etiqueta,
-  ancho,
-  ayuda,
-  obligatorio,
-  children,
-}: {
-  etiqueta: string;
-  ancho?: boolean;
-  ayuda?: string;
-  obligatorio?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className={`flex flex-col gap-1 ${ancho ? "sm:col-span-2" : ""}`}>
-      <span className="text-sm">
-        {etiqueta}
-        {obligatorio && <span style={{ color: "var(--marca-600)" }}> *</span>}
-      </span>
-      {children}
-      {ayuda && (
-        <span className="text-xs" style={{ color: "var(--color-text-suave)" }}>
-          {ayuda}
-        </span>
-      )}
-    </label>
-  );
-}
-
-function Opciones<T extends string>({
-  valor,
-  opciones,
-  onCambiar,
-}: {
-  valor: T | null;
-  opciones: { id: T; etiqueta: string }[];
-  onCambiar: (v: T | null) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {opciones.map(({ id, etiqueta }) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => onCambiar(valor === id ? null : id)}
-          className="rounded-[var(--radius-md)] border px-2.5 py-1 text-sm"
-          style={{
-            borderColor: valor === id ? "var(--marca-900)" : "var(--color-border)",
-            background: valor === id ? "var(--marca-900)" : "var(--color-bg)",
-            color: valor === id ? "#ffffff" : "var(--color-text)",
-          }}
-        >
-          {etiqueta}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-const SiNo = ({
-  valor,
-  onCambiar,
-}: {
-  valor: boolean | null;
-  onCambiar: (v: boolean | null) => void;
-}) => (
-  <Opciones
-    valor={valor === null ? null : valor ? "si" : "no"}
-    opciones={[
-      { id: "si", etiqueta: "Sí" },
-      { id: "no", etiqueta: "No" },
-    ]}
-    onCambiar={(v) => onCambiar(v === null ? null : v === "si")}
-  />
-);
-
-/** Campos de lista separada por comas. El texto crudo vive acá para que se vea lo que escribió. */
-type ClaveLista =
-  | "enfermedades_cronicas"
-  | "enfermedades_embarazo"
-  | "antecedentes_familiares"
-  | "medicamentos_habituales"
-  | "antecedentes_ginecologicos"
-  | "complicaciones_parto";
-
-export interface DatosOnboarding {
-  base: Omit<Puerpera, "id" | "dia_puerperio">;
-  ficha: FichaExtendida;
+/** Cómo se ve la respuesta de ella en el hilo. */
+function comoTexto(pregunta: Pregunta, valor: Valor): string {
+  if (valor === null) return "Prefiero no responder";
+  if (Array.isArray(valor)) return valor.join(", ");
+  if (typeof valor === "boolean") return valor ? "Sí" : "No";
+  const opcion = pregunta.opciones?.find((o) => o.id === valor);
+  return opcion ? opcion.etiqueta : String(valor);
 }
 
 interface Props {
@@ -154,70 +320,75 @@ interface Props {
 }
 
 export function FichaOnboarding({ onListo }: Props) {
-  const [nombre, setNombre] = useState("");
-  const [edad, setEdad] = useState("");
-  const [prevision, setPrevision] = useState<Prevision>("fonasa_b");
-  const [region, setRegion] = useState("Metropolitana");
-  const [establecimiento, setEstablecimiento] = useState("");
-  const [fechaParto, setFechaParto] = useState("");
-  const [tipoParto, setTipoParto] = useState<TipoParto>("vaginal");
-
-  const [f, setF] = useState<FichaExtendida>(FICHA_VACIA);
-  const set = <K extends keyof FichaExtendida>(k: K, v: FichaExtendida[K]) =>
-    setF((prev) => ({ ...prev, [k]: v }));
-
-  const [textos, setTextos] = useState<Record<ClaveLista, string>>({
-    enfermedades_cronicas: "",
-    enfermedades_embarazo: "",
-    antecedentes_familiares: "",
-    medicamentos_habituales: "",
-    antecedentes_ginecologicos: "",
-    complicaciones_parto: "",
-  });
-  const setLista = (k: ClaveLista, texto: string) => {
-    setTextos((prev) => ({ ...prev, [k]: texto }));
-    set(k, lista(texto));
-  };
-  const campoLista = (k: ClaveLista, ejemplo: string) => (
-    <input
-      className="input"
-      placeholder={ejemplo}
-      value={textos[k]}
-      onChange={(e) => setLista(k, e.target.value)}
-    />
-  );
-
+  const [respuestas, setRespuestas] = useState<Respuestas>({});
+  const [hechas, setHechas] = useState<Pregunta[]>([]);
+  const [indice, setIndice] = useState(0);
+  const [borrador, setBorrador] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const finDelHilo = useRef<HTMLDivElement>(null);
 
-  const indice = imc(f);
-  const faltan = [
-    nombre.trim() === "" && "tu nombre",
-    edad === "" && "tu edad",
-    fechaParto === "" && "la fecha del parto",
-  ].filter(Boolean) as string[];
-  const completo = faltan.length === 0;
+  useEffect(() => {
+    finDelHilo.current?.scrollIntoView({ behavior: "smooth" });
+  }, [hechas.length, enviando]);
 
-  async function enviar() {
+  /** La siguiente pregunta que corresponde hacer, saltando las que no aplican. */
+  const siguiente = (desde: number, r: Respuestas) => {
+    let i = desde;
+    while (i < PREGUNTAS.length && PREGUNTAS[i].si && !PREGUNTAS[i].si!(r)) i += 1;
+    return i;
+  };
+
+  const actual = indice < PREGUNTAS.length ? PREGUNTAS[indice] : null;
+  const faltanObligatorias = PREGUNTAS.some(
+    (p) => p.obligatoria && respuestas[p.id] === undefined
+  );
+
+  function responder(valor: Valor) {
+    if (!actual) return;
+    const r = { ...respuestas, [actual.id]: valor };
+    setRespuestas(r);
+    setHechas((prev) => [...prev, actual]);
+    setBorrador("");
+    setIndice(siguiente(indice + 1, r));
+  }
+
+  function responderTexto() {
+    if (!actual) return;
+    const limpio = borrador.trim();
+    if (!limpio) return;
+    if (actual.tipo === "numero") return responder(Number(limpio));
+    if (actual.tipo === "lista") return responder(lista(limpio));
+    responder(limpio);
+  }
+
+  async function registrar() {
     setEnviando(true);
     setError(null);
+    const ficha: Record<string, Valor> = {};
+    for (const p of PREGUNTAS) {
+      const v = respuestas[p.id];
+      if (p.destino === "ficha" && v !== undefined && v !== null) ficha[p.id] = v;
+    }
     try {
       const res = await fetch("/api/puerperas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           base: {
-            nombre,
-            edad: Number(edad),
-            tipo_parto: tipoParto,
-            fecha_parto: fechaParto,
-            prevision,
-            region,
-            establecimiento: establecimiento || "No indicado",
-            comorbilidades: f.enfermedades_cronicas,
+            nombre: respuestas.nombre,
+            edad: Number(respuestas.edad),
+            tipo_parto: (respuestas.tipo_parto ?? "vaginal") as TipoParto,
+            fecha_parto: respuestas.fecha_parto,
+            // La base exige estos tres y ella los puede saltar: se guarda que no los indicó,
+            // no un valor inventado que la matrona leería como respuesta.
+            prevision: (respuestas.prevision ?? "fonasa_b") as Prevision,
+            region: (respuestas.region as string) || "No indicada",
+            establecimiento: (respuestas.establecimiento as string) || "No indicado",
+            comorbilidades: (ficha.enfermedades_cronicas as string[]) ?? [],
             ficha_extendida: null,
           },
-          ficha: f, // `completada_at` lo pone /api/puerperas, no acá.
+          ficha: { ...FICHA_VACIA, ...(ficha as Partial<FichaExtendida>) },
         }),
       });
       const cuerpo = await res.json();
@@ -225,301 +396,137 @@ export function FichaOnboarding({ onListo }: Props) {
       onListo(cuerpo.puerpera as Puerpera);
     } catch (e) {
       setError(e instanceof Error ? e.message : "no se pudo registrar");
-    } finally {
       setEnviando(false);
     }
   }
 
+  // Solo las que de verdad le van a llegar: las condicionales que no aplican no cuentan.
+  const restantes = PREGUNTAS.slice(indice).filter((p) => !p.si || p.si(respuestas)).length;
+
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-6">
-      <header>
-        <h1 className="text-2xl" style={{ fontFamily: "var(--font-titulo, inherit)" }}>
-          Antes de empezar
-        </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--color-text-suave)" }}>
-          Esto lo lee la matrona que te va a acompañar estas semanas. Solo los campos con{" "}
-          <span style={{ color: "var(--marca-600)" }}>*</span> son obligatorios: responde el resto
-          si lo sabes, y lo que dejes en blanco queda como no preguntado, no como respuesta
-          negativa. En cada campo hay un ejemplo de lo que se espera.
-        </p>
+    <section className="mx-auto flex h-full w-full max-w-2xl flex-col">
+      <header
+        className="flex items-baseline gap-2 border-b px-4 py-3 sm:px-6"
+        style={{ borderColor: "var(--color-border)" }}
+      >
+        <h1 className="text-base font-medium">Antes de empezar</h1>
+        <span className="tabular ml-auto text-xs" style={{ color: "var(--color-text-suave)" }}>
+          {actual ? `${hechas.length + 1} de ${PREGUNTAS.length}` : "Listo"}
+        </span>
       </header>
 
-      <Seccion titulo="Identificación">
-        <Campo etiqueta="Nombre" obligatorio ayuda="Ejemplo: María José">
-          <input
-            className="input"
-            placeholder="María José"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-          />
-        </Campo>
-        <Campo etiqueta="Edad" obligatorio ayuda="En años. Ejemplo: 28">
-          <input
-            type="number"
-            min={12}
-            max={55}
-            className="input"
-            placeholder="28"
-            value={edad}
-            onChange={(e) => setEdad(e.target.value)}
-          />
-        </Campo>
-        <Campo etiqueta="Previsión" ancho ayuda="La que dice tu carnet. Ejemplo: Fonasa B">
-          <Opciones
-            valor={prevision}
-            opciones={PREVISIONES}
-            onCambiar={(v) => v && setPrevision(v)}
-          />
-        </Campo>
-        <Campo etiqueta="Región" ayuda="Ejemplo: Metropolitana">
-          <input
-            className="input"
-            placeholder="Metropolitana"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-          />
-        </Campo>
-        <Campo etiqueta="Establecimiento" ayuda="Dónde tuviste a tu guagua. Ejemplo: Hospital San José">
-          <input
-            className="input"
-            placeholder="Hospital San José"
-            value={establecimiento}
-            onChange={(e) => setEstablecimiento(e.target.value)}
-          />
-        </Campo>
-      </Seccion>
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-4 sm:px-6">
+        <Burbuja de="sistema">{SALUDO}</Burbuja>
+        <Burbuja de="sistema">{SALUDO_2}</Burbuja>
 
-      <Seccion titulo="Salud general">
-        <Campo etiqueta="Peso (kg)" ayuda="El de ahora. Ejemplo: 68,5">
-          <input
-            type="number"
-            step="0.1"
-            className="input"
-            placeholder="68.5"
-            value={f.peso_kg ?? ""}
-            onChange={(e) => set("peso_kg", e.target.value ? Number(e.target.value) : null)}
-          />
-        </Campo>
-        <Campo
-          etiqueta="Talla (cm)"
-          ayuda={indice !== null ? `IMC ${indice}` : "Ejemplo: 162"}
-        >
-          <input
-            type="number"
-            className="input"
-            placeholder="162"
-            value={f.talla_cm ?? ""}
-            onChange={(e) => set("talla_cm", e.target.value ? Number(e.target.value) : null)}
-          />
-        </Campo>
-        <Campo
-          etiqueta="Enfermedades crónicas"
-          ancho
-          ayuda="Las que tenías antes del embarazo, separadas por coma. Ejemplo: hipertensión, diabetes"
-        >
-          {campoLista("enfermedades_cronicas", "hipertensión, diabetes")}
-        </Campo>
-        <Campo
-          etiqueta="Enfermedades durante el embarazo"
-          ancho
-          ayuda="Separadas por coma. Ejemplo: diabetes gestacional, preeclampsia"
-        >
-          {campoLista("enfermedades_embarazo", "diabetes gestacional, preeclampsia")}
-        </Campo>
-        <Campo
-          etiqueta="Antecedentes familiares"
-          ancho
-          ayuda="Enfermedades de tu familia directa. Ejemplo: madre con hipertensión, hermana con diabetes"
-        >
-          {campoLista("antecedentes_familiares", "madre con hipertensión, hermana con diabetes")}
-        </Campo>
-        <Campo
-          etiqueta="Medicamentos de uso habitual"
-          ancho
-          ayuda="Los que tomas seguido, separados por coma. Ejemplo: ácido fólico, fierro"
-        >
-          {campoLista("medicamentos_habituales", "ácido fólico, fierro")}
-        </Campo>
-      </Seccion>
+        {hechas.map((pregunta, i) => (
+          <div key={`${pregunta.id}-${i}`} className="contents">
+            <Burbuja de="sistema">{pregunta.texto}</Burbuja>
+            <Burbuja de="puerpera">{comoTexto(pregunta, respuestas[pregunta.id])}</Burbuja>
+          </div>
+        ))}
 
-      <Seccion titulo="Hábitos">
-        <Campo etiqueta="Tabaco" ayuda="Durante el embarazo. Ejemplo: fumabas a veces → Ocasional">
-          <Opciones valor={f.tabaco} opciones={HABITOS} onCambiar={(v) => set("tabaco", v)} />
-        </Campo>
-        <Campo etiqueta="Alcohol" ayuda="Durante el embarazo. Ejemplo: una copa en un cumpleaños → Ocasional">
-          <Opciones valor={f.alcohol} opciones={HABITOS} onCambiar={(v) => set("alcohol", v)} />
-        </Campo>
-        <Campo etiqueta="Drogas" ayuda="Durante el embarazo. Ejemplo: nunca → No">
-          <Opciones valor={f.drogas} opciones={HABITOS} onCambiar={(v) => set("drogas", v)} />
-        </Campo>
-      </Seccion>
+        {actual && <Burbuja de="sistema">{actual.texto}</Burbuja>}
 
-      <Seccion titulo="Antecedentes ginecológicos">
-        <Campo
-          etiqueta="Antecedentes"
-          ancho
-          ayuda="Separados por coma. Ejemplo: quiste ovárico, endometriosis, cesárea anterior"
-        >
-          {campoLista("antecedentes_ginecologicos", "quiste ovárico, endometriosis")}
-        </Campo>
-        <Campo etiqueta="Fecha de última regla" ayuda="La última antes de este embarazo, si la recuerdas">
-          <input
-            type="date"
-            className="input"
-            value={f.fecha_ultima_regla ?? ""}
-            onChange={(e) => set("fecha_ultima_regla", e.target.value || null)}
-          />
-        </Campo>
-        <Campo etiqueta="Partos previos" ayuda="Sin contar este. Ejemplo: 1">
-          <input
-            type="number"
-            min={0}
-            className="input"
-            placeholder="1"
-            value={f.paridad ?? ""}
-            onChange={(e) => set("paridad", e.target.value ? Number(e.target.value) : null)}
-          />
-        </Campo>
-      </Seccion>
-
-      <Seccion titulo="El parto">
-        <Campo etiqueta="Fecha del parto" obligatorio ayuda="El día que nació tu guagua">
-          <input
-            type="date"
-            className="input"
-            value={fechaParto}
-            onChange={(e) => setFechaParto(e.target.value)}
-          />
-        </Campo>
-        <Campo etiqueta="Tipo de parto" ayuda="Ejemplo: si te operaron, es Cesárea">
-          <Opciones
-            valor={tipoParto}
-            opciones={[
-              { id: "vaginal" as TipoParto, etiqueta: "Vaginal" },
-              { id: "cesarea" as TipoParto, etiqueta: "Cesárea" },
-            ]}
-            onCambiar={(v) => v && setTipoParto(v)}
-          />
-        </Campo>
-        <Campo etiqueta="Semanas de gestación" ayuda="Con cuántas semanas nació. Ejemplo: 39">
-          <input
-            type="number"
-            min={20}
-            max={44}
-            className="input"
-            placeholder="39"
-            value={f.semanas_gestacion ?? ""}
-            onChange={(e) =>
-              set("semanas_gestacion", e.target.value ? Number(e.target.value) : null)
-            }
-          />
-        </Campo>
-        <Campo etiqueta="Horas de trabajo de parto" ayuda="Desde las contracciones hasta el parto. Ejemplo: 8">
-          <input
-            type="number"
-            min={0}
-            className="input"
-            placeholder="8"
-            value={f.horas_trabajo_parto ?? ""}
-            onChange={(e) =>
-              set("horas_trabajo_parto", e.target.value ? Number(e.target.value) : null)
-            }
-          />
-        </Campo>
-        <Campo etiqueta="¿Embarazo múltiple?" ayuda="Ejemplo: mellizos o más → Sí">
-          <SiNo valor={f.embarazo_multiple} onCambiar={(v) => set("embarazo_multiple", v)} />
-        </Campo>
-        <Campo etiqueta="¿Se usó anestesia?" ayuda="Ejemplo: te pusieron la inyección en la espalda → Sí">
-          <SiNo valor={f.uso_anestesia} onCambiar={(v) => set("uso_anestesia", v)} />
-        </Campo>
-        {f.uso_anestesia === true && (
-          <Campo etiqueta="Tipo de anestesia" ayuda="Ejemplo: peridural, raquídea, general">
-            <input
-              className="input"
-              placeholder="peridural"
-              value={f.tipo_anestesia ?? ""}
-              onChange={(e) => set("tipo_anestesia", e.target.value || null)}
-            />
-          </Campo>
+        {!actual && !enviando && (
+          <Burbuja de="sistema">
+            Gracias, {String(respuestas.nombre ?? "")}. Con esto ya te puedo acompañar.
+          </Burbuja>
         )}
-        <Campo
-          etiqueta="Complicaciones del parto"
-          ancho
-          ayuda="Separadas por coma. Ejemplo: desgarro, hemorragia, fórceps"
-        >
-          {campoLista("complicaciones_parto", "desgarro, hemorragia")}
-        </Campo>
-        {/* La episiotomía solo tiene sentido en parto vaginal. */}
-        {tipoParto === "vaginal" && (
-          <Campo etiqueta="¿Hubo episiotomía?" ayuda="El corte para ayudar a que saliera la guagua">
-            <SiNo valor={f.episiotomia} onCambiar={(v) => set("episiotomia", v)} />
-          </Campo>
+
+        {error && (
+          <p
+            className="self-start rounded-[var(--radius-md)] border px-3.5 py-2.5 text-sm"
+            style={{ borderColor: "#B3261E", color: "#B3261E" }}
+          >
+            No pude guardar tu ficha: {error}.
+          </p>
         )}
-        <Campo etiqueta="¿Hubo apego inmediato?" ayuda="Si te pusieron a la guagua en el pecho al nacer">
-          <SiNo valor={f.apego_inmediato} onCambiar={(v) => set("apego_inmediato", v)} />
-        </Campo>
-        <Campo etiqueta="Inicio de la lactancia" ayuda="El día que empezaste a darle pecho">
-          <input
-            type="date"
-            className="input"
-            value={f.fecha_inicio_lactancia ?? ""}
-            onChange={(e) => set("fecha_inicio_lactancia", e.target.value || null)}
-          />
-        </Campo>
-      </Seccion>
 
-      <Seccion titulo="Contacto de emergencia">
-        <Campo etiqueta="Nombre" ayuda="A quién llamamos si no te ubicamos. Ejemplo: Carolina Pérez">
-          <input
-            className="input"
-            placeholder="Carolina Pérez"
-            value={f.contacto_emergencia_nombre ?? ""}
-            onChange={(e) => set("contacto_emergencia_nombre", e.target.value || null)}
-          />
-        </Campo>
-        <Campo etiqueta="Relación" ayuda="Ejemplo: pareja, madre, hermana, vecina">
-          <input
-            className="input"
-            placeholder="pareja"
-            value={f.contacto_emergencia_relacion ?? ""}
-            onChange={(e) => set("contacto_emergencia_relacion", e.target.value || null)}
-          />
-        </Campo>
-        <Campo etiqueta="Teléfono" ancho ayuda="Ejemplo: +56 9 8765 4321">
-          <input
-            className="input"
-            placeholder="+56 9 8765 4321"
-            value={f.contacto_emergencia_telefono ?? ""}
-            onChange={(e) => set("contacto_emergencia_telefono", e.target.value || null)}
-          />
-        </Campo>
-      </Seccion>
+        <div ref={finDelHilo} />
+      </div>
 
-      {error && (
-        <p className="text-sm" style={{ color: "var(--riesgo-alto, #B3261E)" }}>
-          {error}
-        </p>
-      )}
-
-      {/* Pegado abajo: el formulario es largo y el botón no se busca con una guagua en brazos. */}
       <div
-        className="sticky bottom-0 flex flex-col gap-1 py-3"
-        style={{ background: "var(--color-bg)" }}
+        className="flex flex-col gap-2 border-t px-4 py-3 sm:px-6"
+        style={{ borderColor: "var(--color-border)" }}
       >
-        <button
-          type="button"
-          disabled={!completo || enviando}
-          onClick={enviar}
-          className="btn btn-primary w-full"
-        >
-          {enviando ? "Guardando…" : "Comenzar el seguimiento"}
-        </button>
-        {!completo && (
-          <span className="text-xs" style={{ color: "var(--color-text-suave)" }}>
-            Falta {faltan.join(" y ")} para poder empezar.
-          </span>
+        {actual ? (
+          <>
+            {actual.tipo === "opciones" || actual.tipo === "siNo" ? (
+              <div className="flex flex-wrap gap-1.5">
+                {(actual.tipo === "siNo" ? SI_NO : actual.opciones ?? []).map((opcion) => (
+                  <button
+                    key={opcion.id}
+                    type="button"
+                    onClick={() =>
+                      responder(actual.tipo === "siNo" ? opcion.id === "si" : opcion.id)
+                    }
+                    className="rounded-[var(--radius-pill)] border px-3 py-1.5 text-sm"
+                    style={{
+                      borderColor: "var(--color-border)",
+                      background: "var(--color-surface)",
+                    }}
+                  >
+                    {opcion.etiqueta}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  autoFocus
+                  key={actual.id}
+                  className="input flex-1"
+                  type={
+                    actual.tipo === "numero" ? "number" : actual.tipo === "fecha" ? "date" : "text"
+                  }
+                  step={actual.id === "peso_kg" ? "0.1" : undefined}
+                  placeholder={actual.ejemplo ? `Por ejemplo: ${actual.ejemplo}` : undefined}
+                  value={borrador}
+                  onChange={(e) => setBorrador(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") responderTexto();
+                  }}
+                />
+                <button
+                  className="btn btn-primary"
+                  disabled={!borrador.trim()}
+                  onClick={responderTexto}
+                >
+                  Enviar
+                </button>
+              </div>
+            )}
+
+            {!actual.obligatoria && (
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => responder(null)}
+                  className="text-xs underline"
+                  style={{ color: "var(--color-text-suave)" }}
+                >
+                  Prefiero no responder
+                </button>
+                {!faltanObligatorias && restantes > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setIndice(PREGUNTAS.length)}
+                    className="text-xs underline"
+                    style={{ color: "var(--color-text-suave)" }}
+                  >
+                    Saltar las {restantes} que quedan y empezar
+                  </button>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <button className="btn btn-primary w-full" disabled={enviando} onClick={registrar}>
+            {enviando ? "Guardando…" : "Empezar mi seguimiento"}
+          </button>
         )}
       </div>
-    </div>
+    </section>
   );
 }

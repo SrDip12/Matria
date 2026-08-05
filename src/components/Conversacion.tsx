@@ -12,6 +12,36 @@ interface ConversacionProps {
   onEnviar: (texto: string) => void;
 }
 
+/**
+ * Burbuja del hilo. La usa esta pantalla y también la ficha de ingreso, que ahora es una
+ * conversación: si la ficha se ve distinta al chat, la puérpera cree que son dos productos.
+ */
+export function Burbuja({
+  de,
+  children,
+}: {
+  de: "puerpera" | "sistema";
+  children: React.ReactNode;
+}) {
+  const suya = de === "puerpera";
+  return (
+    <div
+      className={
+        suya
+          ? "max-w-[85%] self-end rounded-[14px_14px_4px_14px] px-3.5 py-2.5 text-sm"
+          : "max-w-[85%] self-start rounded-[14px_14px_14px_4px] border px-3.5 py-2.5 text-sm"
+      }
+      style={
+        suya
+          ? { background: "var(--marca-600)", color: "#ffffff" }
+          : { background: "var(--color-surface)", borderColor: "var(--color-border)" }
+      }
+    >
+      {children}
+    </div>
+  );
+}
+
 /** Arranques para que el jurado no tenga que inventar un relato en vivo. */
 const SUGERENCIAS = [
   "estamos bien las dos, cansada nomás",
@@ -46,8 +76,11 @@ export function Conversacion({ puerpera, mensajes, enviando, error, onEnviar }: 
   const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
 
   return (
-    <section className="flex h-full flex-col">
-      <header className="border-b p-4" style={{ borderColor: "var(--color-border)" }}>
+    <section className="flex h-full min-h-0 flex-1 flex-col">
+      <header
+        className="border-b px-4 py-3 sm:px-6"
+        style={{ borderColor: "var(--color-border)" }}
+      >
         <h2 className="font-medium">
           {etiqueta}{" "}
           <span className="tabular" style={{ color: "var(--color-text-suave)" }}>
@@ -60,7 +93,7 @@ export function Conversacion({ puerpera, mensajes, enviando, error, onEnviar }: 
         </p>
       </header>
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 py-4 sm:px-6">
         {mensajes.length === 0 && !enviando && (
           <div className="flex flex-col gap-2 py-6">
             <p className="text-sm" style={{ color: "var(--color-text-suave)" }}>
@@ -83,38 +116,16 @@ export function Conversacion({ puerpera, mensajes, enviando, error, onEnviar }: 
           </div>
         )}
 
-        {mensajes.map((mensaje) => {
-          const esPuerpera = mensaje.autor === "puerpera";
-          return (
-            <div
-              key={mensaje.id}
-              className={
-                esPuerpera
-                  ? "max-w-[80%] self-end rounded-[12px_12px_3px_12px] px-3.5 py-2.5 text-sm"
-                  : "max-w-[80%] self-start rounded-[12px_12px_12px_3px] border px-3.5 py-2.5 text-sm"
-              }
-              style={
-                esPuerpera
-                  ? { background: "var(--marca-600)", color: "#ffffff" }
-                  : { background: "var(--color-surface)", borderColor: "var(--color-border)" }
-              }
-            >
-              {mensaje.texto}
-            </div>
-          );
-        })}
+        {mensajes.map((mensaje) => (
+          <Burbuja key={mensaje.id} de={mensaje.autor}>
+            {mensaje.texto}
+          </Burbuja>
+        ))}
 
         {enviando && (
-          <div
-            className="max-w-[80%] self-start rounded-[12px_12px_12px_3px] border px-3.5 py-2.5 text-sm"
-            style={{
-              background: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text-suave)",
-            }}
-          >
-            Interpretando lo que escribiste…
-          </div>
+          <Burbuja de="sistema">
+            <span style={{ color: "var(--color-text-suave)" }}>Leyendo lo que me contaste…</span>
+          </Burbuja>
         )}
 
         {error && (
@@ -129,7 +140,10 @@ export function Conversacion({ puerpera, mensajes, enviando, error, onEnviar }: 
         <div ref={finDelHilo} />
       </div>
 
-      <div className="flex gap-2 border-t p-4" style={{ borderColor: "var(--color-border)" }}>
+      <div
+        className="flex gap-2 border-t px-4 py-3 sm:px-6"
+        style={{ borderColor: "var(--color-border)" }}
+      >
         <input
           className="input flex-1"
           placeholder="Cuéntame cómo estás hoy"
