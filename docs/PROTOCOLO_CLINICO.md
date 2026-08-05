@@ -1,220 +1,339 @@
-# **Protocolo clínico del puerperio**
+# Protocolo clínico del puerperio
 
-**Matria — Impact Lab Longevidad**  
+**Matria — Impact Lab Longevidad**
 Autora clínica: Vale — matrona
+Versión 1.2 — validada
 
-*Estado: plantilla por completar*
+Este documento se inyecta completo en el motor del agente. **Todo umbral que esté acá se
+aplica; todo lo que no esté acá, el agente no lo sabe.**
 
-Uso: este documento se inyecta completo en el motor del agente. Todo umbral que esté acá se aplica; todo lo que no esté acá, el agente no lo sabe.
+Los números de sección (§) son el identificador que cada alerta cita. **No se renumeran.**
 
-*Para el equipo técnico: no editen el contenido clínico. Si algo acá parece inconsistente, se le pregunta a Vale, no se corrige por cuenta propia. Los números de sección (§) son el identificador que cada alerta va a citar, así que no se renumeran una vez que el agente esté funcionando.*
+---
 
-*Para Vale: no hace falta prosa bonita. Se necesita criterio operacional — qué señal, en qué día, qué tan grave, qué hace la matrona. Donde diga \[ completar \], escribe encima o debajo, borra el corchete cuando termines. Mientras más específicos los umbrales, mejor funciona el agente y menos ruido genera.*
-
-## **§1. Alcance**
+## §1. Alcance
 
 El seguimiento cubre desde el alta hospitalaria hasta el día 42 postparto.
 
-El sistema no diagnostica. Detecta señales de alarma, las clasifica en tres niveles y las escala a la matrona con la sección de este protocolo que las justifica.
+El sistema **no diagnostica**. Detecta señales, las clasifica y las escala a la matrona
+citando la sección de este protocolo que lo justifica.
 
-### **§1.1 Niveles de riesgo**
+### §1.1 Clasificación
 
-| Nivel | Qué significa | Qué gatilla |
-| :---- | :---- | :---- |
-| Alto | Requiere contacto de la matrona hoy | *completar: ¿en cuánto tiempo? ¿derivación directa a urgencia en algún caso?* |
-| Medio | Requiere contacto dentro de 24 a 48 h | *completar* |
-| Bajo | Seguimiento habitual, sin acción | — |
+Hay **dos categorías clínicas**, no tres. Un hallazgo es señal de alarma o es signo de
+emergencia; no existe una categoría intermedia que pueda esperar.
 
-## **§2. Preeclampsia postparto**
+| Categoría | Qué significa | Acción | Valor en el sistema |
+|---|---|---|---|
+| **Signo de emergencia** | Riesgo vital o de daño grave | Mensaje para acudir a urgencias de inmediato, y telellamada de la matrona en el transcurso | `alto` |
+| **Señal de alarma** | Requiere contacto de la matrona el mismo día | Teleconsulta durante el día, o evaluación presencial en las próximas horas según la sección | `medio` |
+| Sin señales | Seguimiento habitual | Ninguna | `bajo` |
 
-**Ventana de riesgo:**
+Reglas transversales:
 
-*\[ 42 dias post parto \]*
+- **Ante duda entre dos categorías, el sistema elige siempre la más grave.**
+- Ninguna señal se difiere a 24 o 48 horas. O es hoy, o es ahora.
 
-**Señales de alarma:**
+---
 
-*\[ presión arterial en rangos 140/90-159/109 mmHg, edema generalizado, oliguria.* 
+## §2. Preeclampsia postparto
 
-**Umbrales:**
+**Ventana de riesgo:** 42 días postparto.
 
-*\[ presión arterial autorreportada mayor o igual 160/110 mmHg, epigastralgia, cefalea que no cede, tinitus, alteraciones visuales,  alteración del estado de conciencia, convulsión\]*
+**Señales de alarma**
+- Presión arterial entre 140/90 y 159/109 mmHg
+- Edema generalizado
+- Oliguria
 
-**Acción sugerida a la matrona:**
+**Signos de emergencia**
+- Presión arterial ≥160/110 mmHg
+- Epigastralgia
+- Cefalea que no cede
+- Tinitus
+- Alteraciones visuales
+- Alteración del estado de conciencia
+- Convulsión
 
-*\[  signo de alarma: teleconsulta durante  el dia, reevaluar síntomas, reforzar autocuidado* 
+**Cuando no hay cifra de presión.** La mayoría de las puérperas no tiene esfigmomanómetro en
+la casa. **La presencia de dos o más signos de emergencia de la lista anterior escala a
+emergencia aunque no exista ninguna medición de presión arterial.** Un solo signo aislado, sin
+cifra, se clasifica como señal de alarma.
 
-*Signo de emergencia: enviar mensaje para acudir a urgencias de inmediato y telellamada durante el transcurso\]*
+**Acción**
+- Señal de alarma: teleconsulta durante el día, reevaluar síntomas, reforzar autocuidado.
+- Signo de emergencia: mensaje para acudir a urgencias de inmediato y telellamada en el
+  transcurso.
 
-## **§3. Infección puerperal**
+---
 
-### **§3.1 Endometritis**
+## §3. Infección puerperal
 
-**Ventana de riesgo:**
+### §3.1 Endometritis
 
-*\[ 42 días \]*
+**Ventana de riesgo:** 42 días.
 
-**Señales:**
+**Señales de alarma**
+- Fiebre
+- Dolor hipogástrico
+- Loquios de mal olor
+- Subinvolución uterina
 
-*\[ fiebre, dolor hipogástrico, loquios de mal olor, subinvolución uterina\]*
+**Signo de emergencia**
+Temperatura ≥38 °C **sostenida**, más alguna de las señales anteriores, asociada a malestar
+general.
 
-**Umbral de temperatura que escala a alto:**
+**Definición de sostenida:** dos mediciones separadas por al menos **6 horas**, ambas ≥38 °C.
 
-*\[ T° ≥38 sostenida mas alguno de los signos de alarma, asociado  a malestar general\]*
+**Cuando no hay termómetro.** Si la mujer refiere fiebre sin poder medirla, aplica el mismo
+criterio que en §2: **dos o más señales de alarma de esta sección junto a malestar general
+escalan a emergencia.** Fiebre referida aislada es señal de alarma.
 
-**Acción sugerida:**
+**Acción**
+- Señal de alarma: teleconsulta para verificar síntomas y orientar en autocuidado.
+- Signo de emergencia: mensaje para acudir a urgencias de inmediato y telellamada en el
+  transcurso.
 
-*\[señales:  teleconsulta para verificar sintomas y orientar en autocuidado.* 
+### §3.2 Infección de herida operatoria (cesárea) o de episiorrafia
 
-*Umbral: enviar mensaje para acudir a urgencias de inmediato y telellamada en el transcurso\]*
+**Ventana de riesgo:** 14 días.
 
-### **§3.2 Infección de herida operatoria (cesárea) o episorrafia (episiotomía)**
+**Señales**
+- Eritema alrededor de la herida
+- Sensibilidad local
+- Edema
+- Secreción purulenta con mal olor
+- Fiebre
+- Dehiscencia
 
-**Ventana de riesgo:**
+**Acción**
 
-*\[ 14 días \]*
+*Señales sin fiebre — señal de alarma.* El agente escala a teleconsulta cuando el cuadro
+requiere curación local. En la teleconsulta, **la matrona** guía la curación, y solo si la
+paciente cuenta con los insumos médicos necesarios. Si no los tiene, se indica evaluación
+presencial. Control en 24 a 48 horas.
 
-**Señales:**
+*Señales con fiebre — signo de emergencia.* Acudir a evaluación médica.
 
-*\[  eritema alrededor de la herida, sensibilidad local, edema, secreción purulenta con mal olor, fiebre, dehiscencia. \]*
+El agente nunca describe ni indica el procedimiento de curación. Solo detecta que se necesita
+y escala.
 
-**Acción sugerida:**
+---
 
-*\[ signos de alarma sin fiebre, guiar en curación local y control en 24-48 hrs. Signos de alarma con fiebre acudir a evaluación médica \]*
+## §4. Hemorragia postparto tardía
 
-## **§4. Hemorragia postparto tardía**
+**Ventana de riesgo:** 42 días.
 
-**Ventana de riesgo:**
+**Cómo cuantificar el sangrado sin instrumentos.** Preguntas que hace el agente, en este orden:
 
-*\[42 días \]*
+1. ¿Cuántas toallas higiénicas has usado en la última hora?
+2. ¿Se te llenan completas o quedan a medias?
+3. ¿El sangrado está aumentando, se mantiene igual, o había bajado y ahora volvió a subir?
+4. ¿Has botado coágulos? ¿De qué porte, más o menos como una moneda o más grandes?
 
-**Cómo pedirle a la puérpera que cuantifique el sangrado sin instrumentos:**
+**Señal de alarma**
+El sangrado aumentó respecto de los días anteriores, o volvió a subir después de haber bajado,
+con coágulos pequeños y sin ningún signo de shock.
+Acción: evaluación presencial en las próximas horas, con instrucción de avisar de inmediato si
+algo cambia.
 
-*\[ ¿Cuántas compresas has usado en la última hora?¿ Se empapan completamente?¿El patrón de sangrado ha ido en aumento, se mantiene igual, o habia bajado y ahora volvió a subir? \]*
+**Signo de emergencia** — cualquiera de estas tres basta:
+- Se llena una toalla completa en una hora o menos
+- Coágulos grandes
+- Cualquier signo de shock
 
-**Umbral que escala a alto:**
+Acción: acudir a urgencias de inmediato.
 
-*\[  sintomas de shock, coágulos abundante\]*
+**Signos de shock, en palabras que la puérpera pueda reportar:** mareo al pararse, sudor frío,
+sensación de que se va a desmayar, se le va la vista, palidez, corazón acelerado.
 
-**Acción sugerida:**
+---
 
-*\[  sangrado algo mayor, sin signos de shock, coágulos pequeños: indicar evaluación presencial en las próximas horas, con instrucción de llamar si algo cambia.* 
+## §5. Mastitis y lactancia
 
-*Sangrado abundante, coágulos grandes y cualquier signo de shock: acudir a urgencias de inmediato\]*
+### §5.1 Mastitis
 
-## **§5. Mastitis y lactancia**
+**Ventana de riesgo:** cualquier momento de la lactancia.
 
-### **§5.1 Mastitis**
+**Señales que la diferencian de una congestión mamaria simple — señal de alarma**
+- Eritema
+- Dolor local
+- Fiebre
+- Malestar general
 
-**Ventana de riesgo:**
+**Umbral que escala:** secreción de mal olor.
 
-*\[ cualquier momento de la lactancia\]*
+**Acción**
+- Teleconsulta con clínica de lactancia.
+- En caso de absceso o secreción purulenta: acudir a evaluación médica.
 
-**Señales que la diferencian de una congestión mamaria simple:**
+### §5.2 Dificultad en lactancia
 
-*\[ eritema, dolor local, fiebre, malestar general\]*
+Deja de ser apoyo y pasa a ser **señal de alarma** cuando:
+- El recién nacido no se está alimentando como corresponde
+- Hay dolor al amamantar
+- Hay grietas en el pezón
+- No hay acople correcto
 
-**Umbral que escala:**
+---
 
-*\[ secreción de mal olor\]*
+## §6. Evento tromboembólico
 
-**Acción sugerida:**
+**Ventana de riesgo:** 42 días.
 
-*\[  teleconsulta con clinica de lactancia, en caso de absceso o secreción purulenta acudir a médico\]*
+**Todas las señales de esta sección son signo de emergencia.** Cualquiera de ellas, aislada,
+escala a emergencia. No se exige combinación.
 
-### **§5.2 Dificultad en lactancia**
+**Trombosis venosa profunda**
+- Edema en piernas, generalmente unilateral
+- Sensibilidad al caminar
+- Sensación de calor
+- Eritema
 
-**Cuándo deja de ser apoyo y pasa a ser alerta:**
+**Tromboembolismo pulmonar**
+- Disnea
+- Taquipnea
+- Dolor torácico
+- Sensación de desmayo
 
-*\[  cuando el recien nacido no se esta alimentando como corresponde,  hay dolor al amamantar,  grietas en el pezon, no hay acople correcto.  \]*
+**Acción:** acudir a urgencias de inmediato, y telellamada de la matrona en el transcurso.
 
-## **§6. Evento tromboembólico**
+Esta regla está codificada fuera del modelo y no admite excepción.
 
-**Ventana de riesgo:**
+---
 
-*\[ 42 días \]*
+## §7. Salud mental perinatal
 
-**Señales:**
+### §7.1 Tamizaje
 
-*\[  edema en piernas, generalmente unilateral, sensibilidad al caminar, sensación de calor, eritema, TEP: Disnea, taquipnea, dolor toracico, sensación de desmayo\]*
+**Instrumento: EPDS** (Escala de Depresión Postnatal de Edimburgo).
 
-*Clasificar signos en  señales de alarma y emergencia, solo acudir en caso disnea asociado a dolor toracico y asimetria en piernas.* 
+La EPDS se aplica a las **8 semanas** postparto, es decir fuera de la ventana de 42 días que
+cubre este sistema. Por lo tanto **el agente no aplica la escala ni la puntúa.**
 
-*Nota: cualquier señal acá escala directo a alto. Confirmar.*
+Lo que sí hace durante los 42 días:
 
-## **§7. Salud mental perinatal**
+- Registra las señales de ánimo que la mujer reporte espontáneamente, sin puntuarlas.
+- Al cierre del día 42, entrega a la matrona un resumen de lo observado, para que llegue al
+  control de las 8 semanas con antecedentes en vez de con una hoja en blanco.
 
-### **§7.1 Tamizaje**
+Criterios de la EPDS, para referencia de la matrona en ese control:
+- Puntaje >10: se repite en 2 semanas.
+- Cualquier puntaje distinto de 0 en la pregunta 10: control inmediato con equipo de
+  psicología.
 
-**Instrumento:**
+### §7.2 Ideación autolítica
 
-*\[ EPSA se aplica a las 8 sem postparto, los puntajes de corte son \>10  puntos se repite en 2 semanas y un puntaje distinto de 0 en la pregunta 10 requiere control inmediata con equipo de psicología*  
+Cualquier señal de ideación escala a **emergencia** de forma inmediata, en cualquier día del
+puerperio y sin importar el resto de los hallazgos. **Esta regla está codificada fuera del
+modelo y no admite excepción.**
 
-### **§7.2 Ideación autolítica**
+Acción: la matrona gestiona de inmediato atención clínica con el equipo de psicología.
 
-Cualquier señal de ideación escala a alto de forma inmediata, en cualquier día y sin importar el resto de los hallazgos. Esta regla está codificada en el agente y no admite excepción.
+---
 
-**Acción sugerida y vía de derivación:**
+## §8. Factores que modifican el riesgo basal
 
-*\[ matrona debe gestionar de inmediato atención clínica con equipo de psicología\]*
+**Regla operativa.** Estos factores **no cambian la categoría** de un hallazgo, con una sola
+excepción. Lo que hacen es **priorizar dentro de la misma categoría**: entre dos mujeres con
+señal de alarma, la que tiene factores de riesgo aparece primero en el panel de la matrona.
 
-## **§8. Factores que modifican el riesgo basal**
+**Excepción única:** antecedente de trastorno hipertensivo del embarazo más cualquier señal de
+§2 escala directo a **emergencia**, aunque haya un solo signo y no haya cifra de presión.
 
-Qué antecedentes hacen que una misma señal pese más:
+**Factores**
 
-* Cesárea vs parto vaginal: \[ Cesárea presenta más riesgo al ser una cirugía avanzada, que involucra mayor pérdida de sangre, mayor riesgo de infección, mayor riesgo de tromboembolismo\]
+- **Cesárea vs parto vaginal:** cirugía mayor, con mayor pérdida de sangre, mayor riesgo de
+  infección y mayor riesgo de tromboembolismo.
+- **Edad ≥35:** menor elasticidad vascular, comorbilidades acumuladas, menor eficiencia
+  contráctil uterina y peor placentación. Mayor riesgo de tromboembolismo, preeclampsia y
+  hemorragia, y más probabilidad de enfermedades crónicas previas.
+- **Trastorno hipertensivo del embarazo:** daño vascular crónico, mayor riesgo de preeclampsia.
+- **Diabetes gestacional:** mayor estasis venosa, estado protrombótico, peor cicatrización y
+  mayor tejido a irrigar. Mayor riesgo de preeclampsia e infección de herida operatoria.
+- **Embarazo múltiple:** sobredistensión uterina y mayor volumen placentario. Mayor riesgo de
+  preeclampsia, hemorragia por atonía y trombosis.
+- **Obesidad:** mayor estasis venosa, estado protrombótico, peor cicatrización y mayor tejido a
+  irrigar. Mayor riesgo de tromboembolismo, preeclampsia e infección de herida operatoria.
+- **Parto prolongado:** mayor exposición de la cavidad uterina a flora vaginal ascendente y
+  mayor número de tactos vaginales. Mayor riesgo de endometritis.
+- **Inmovilización durante el parto:** estasis venosa, mayor riesgo de tromboembolismo.
 
-* Edad ≥35: \[ Menor elasticidad vascular, comorbilidades acumuladas, menor eficiencia contráctil uterina, mala placentación conlleva a mayor riesgo de tromboembolismo, preeclampsia, hemorragia y mayor probabilidad de enfermedades crónicas previas.\]
+---
 
-* Trastorno hipertensivo del embarazo: \[ genera daño vascular crónica por lo que hay mas riesgo de preeclampsia\]
+## §9. Calendario de contacto
 
-* Diabetes gestacional: \[  Mayor estasis venosa, estado protrombótico, mayor dificultad de cicatrización, mayor tejido a irrigar, genera mayor riesgo de preeclampsia e infeccion de la herida operatoria 
+| Día | Foco de la pregunta | Contacto |
+|---|---|---|
+| 1–3 | Sin contacto: la puérpera está hospitalizada | No |
+| 4–7 | Cantidad de sangrado, olor de los loquios, lactancia, signos de infección, señales de §2 a §6 | Obligatorio |
+| 8–14 | Si asistió al control de díada, evolución del sangrado, retiro de puntos, cómo va la lactancia | Obligatorio |
+| 15–28 | Cómo va la lactancia, hinchazón en las piernas, reaparición del sangrado | Obligatorio |
+| 29–42 | Estado de ánimo, cierre del seguimiento y entrega del resumen para el control de las 8 semanas | Obligatorio |
 
-* Embarazos múltiples: genera Sobredistensión uterina y mayor volumen placentario provocando mayor riesgo de preeclampsia, hemorragia por atonia, trombosis. 
+El agente parte en el día 4. Fuera de estos contactos programados, la mujer puede escribir en
+cualquier momento y el agente evalúa igual.
 
-* Obesidad: Mayor estasis venosa, estado protrombótico, mayor dificultad de cicatrización, mayor tejido a irrigar, genera mayor riesgo de tromboembolismo, preeclampsia e infección de herida operatoria 
+---
 
-* Parto prolongado: hay mayor exposición de la cavidad uterina a flora vaginal ascendente, mayor número de tactos vaginales lo que incrementa el riesgo de Endometritis 
+## §10. Lo que el sistema nunca hace
 
-* Inmovilizacion del parto: provoca estasis venosa, generando más riesgo de tromboembolismo
+- No indica tratamiento, fármaco ni dosis.
+- No describe ni indica procedimientos, incluida la curación de heridas.
+- No afirma un diagnóstico.
+- No aplica ni puntúa escalas clínicas.
+- No contacta servicios de urgencia por su cuenta.
+- No reemplaza el control de puerperio ni el control de díada.
+- No interpreta exámenes ni imágenes.
+- No clasifica por fuera de lo definido en este protocolo.
 
-## **§9. Calendario de contacto**
+---
 
-Qué pregunta el agente y en qué día. Marcar los días en que el contacto es obligatorio aunque no haya señales previas.
+## Anexo — Cómo habla la gente
 
-| Día | Foco de la pregunta | Obligatorio |
-| :---- | :---- | :---- |
-| 1–3 | *\[ esta en hospital \]* | ☐ |
-| 4–7 | *\[Cantidad de sangrado, olor de loquios, lactancia, signos de infección, signos de alarma en patologías\]* | ☐ |
-| 8–14 | *\[  asistio a su control diada, como va el sangrado, se retiraron los puntos, como va la lactancia\]* | ☐ |
-| 15–28 | *\[  como va la lactancia,  has sentido hinchazón en tus piernas, ha reaparecido el sangrado,  \]* | ☐ |
-| 29–42 | *\[ aplicar epsa a las 8 sem post parto\]* | ☐ |
-
-## **§10. Lo que el sistema nunca hace**
-
-* No indica tratamiento, fármaco ni dosis.
-
-* No afirma un diagnóstico.
-
-* No contacta servicios de urgencia por su cuenta.
-
-* No reemplaza el control de puerperio ni el control de díada.
-
-*Vale: agregar lo que falte acá. Esta sección es la que protege al proyecto frente al jurado.*
-
-## **Anexo — Cómo habla la gente**
-
-El agente tiene que entender a una mujer real escribiendo con una guagua en brazos, no a una ficha clínica. Completa cómo te lo dicen tus pacientes de verdad. Mientras más coloquial y más chileno, mejor.
+El agente tiene que entender a una mujer real escribiendo con una guagua en brazos, no a una
+ficha clínica.
 
 | Término clínico | Cómo lo dice ella |
-| :---- | :---- |
-| Loquios de mal olor | Sangre con mal olor  |
-| Dolor hipogástrico | Dolor en la boca del estómago  |
-| Fiebre | Fiebre  |
-| Congestión mamaria | Mamas duras  |
-| Tinitus | Zumbido en el oido  |
-| Cefalea | Dolor de cabeza |
-| Eritema  | Enrojecimiento  |
-| Edema | Inflamación  |
-| Sangrado aumentado |  |
-| Ánimo bajo |  |
+|---|---|
+| Loquios de mal olor | sangre con mal olor · me huele feo abajo · tengo un olor raro |
+| Dolor hipogástrico | dolor en el bajo vientre · me duele la guata abajo · me duele abajo |
+| Epigastralgia | dolor en la boca del estómago |
+| Fiebre | fiebre · estoy hirviendo · tengo como fiebre · ando afiebrada |
+| Congestión mamaria | mamas duras · tengo las pechugas duras · el pecho como piedra |
+| Tinitus | zumbido en el oído · me chillan los oídos |
+| Cefalea | dolor de cabeza · me está partiendo la cabeza |
+| Eritema | enrojecimiento · lo tengo colorado · rojo |
+| Edema | inflamación · hinchado · hinchada |
+| Sangrado aumentado | estoy botando mucha sangre · me está bajando harto · se me llena la toalla |
+| Coágulos | pelotitas de sangre · me salió un coágulo grande |
+| Ánimo bajo | ando bajoneada · estoy triste todo el día · no tengo ganas de nada |
+| Alteración visual | veo lucecitas · veo borroso · veo puntitos negros |
+| Disnea | me falta el aire · me ahogo · no puedo respirar bien |
+| Sensación de desmayo | me voy a desmayar · se me va la vista · ando mareada |
+| Dolor al amamantar | me duele cuando le doy pecho · no se prende bien |
 
+Las variantes que aparecen después del primer punto medio de cada fila son formas coloquiales
+propuestas por el equipo. Vale puede agregar, reemplazar o eliminar cualquiera.
+
+---
+
+## Cambios respecto de la versión anterior
+
+Para el equipo, no forma parte del protocolo.
+
+- §1.1 pasa de tres niveles a **dos categorías clínicas**. Se eliminó el tramo de 24 a 48
+  horas: toda señal se atiende el mismo día o de inmediato. El sistema conserva `bajo`,
+  `medio` y `alto` como valores internos, así que **no cambia nada en el código**.
+- §2 y §3.1: regla de dos o más signos cuando no hay termómetro ni esfigmomanómetro.
+- §3.1: "sostenida" definido como dos mediciones separadas por 6 horas.
+- §3.2: la curación la guía la matrona en teleconsulta y solo si la paciente tiene insumos.
+- §4: preguntas y umbrales reescritos en lenguaje de paciente.
+- §5.1: se mantiene la distinción original entre secreción de mal olor y absceso o secreción
+  purulenta, que son cosas distintas.
+- §6: todas las señales escalan a emergencia por separado. Ya no contradice el código.
+- §7.1: el agente no aplica la EPDS. Observa durante los 42 días y entrega resumen al control
+  de las 8 semanas.
+- §8: los factores priorizan dentro de la categoría, salvo trastorno hipertensivo más señal de
+  §2, que escala directo.
+- Corrección de forma: "EPSA" era **EPDS**. "Dolor hipogástrico" estaba traducido como "dolor
+  en la boca del estómago", que es epigastralgia y es un signo de emergencia de §2.
