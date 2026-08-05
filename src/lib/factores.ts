@@ -5,20 +5,29 @@
  * dentro de la categoría. Por eso esto no toca el nivel de riesgo: se le entrega al modelo
  * como contexto y él lo pondera según §8.
  *
- * OJO CON LOS UMBRALES. §8 nombra "obesidad" y "parto prolongado" pero no define a partir de
- * qué cifra. El protocolo dice que todo umbral que no esté escrito, el agente no lo sabe, así
- * que acá no se inventa ninguno:
+ * UMBRALES. §8 nombra "obesidad" y "parto prolongado" sin dar cifras. Estas las definió Vale
+ * y por eso están acá y no inventadas:
  *
- *   - Obesidad: se usa IMC ≥30, que es el corte de la OMS, no del protocolo. Marcado abajo
- *     para que Vale lo confirme o lo cambie. Es el único corte que este archivo asume.
- *   - Parto prolongado: no se etiqueta. Se entrega la duración en horas tal cual y el modelo
- *     la lee contra §8. Poner un corte propio acá sería escribir protocolo sin ser matrona.
+ *   - Obesidad: IMC >30 moderada, >35 severa.
+ *   - Parto prolongado: >20 h en nulíparas, >14 h en multíparas.
+ *
+ * La gravedad del factor NO es el nivel de riesgo. §8 es explícito: los factores no cambian la
+ * categoría de un hallazgo, priorizan dentro de ella, y la única excepción es la que la propia
+ * §8 define. Un IMC de 36 sin ningún síntoma no es una emergencia: es una puérpera que, ante la
+ * misma señal que otra, se atiende primero. Por eso acá se grada el factor y no se toca el nivel.
+ *
+ * Pendiente de Vale: estos dos umbrales deberían quedar escritos en docs/PROTOCOLO_CLINICO.md
+ * para que una alerta pueda citarlos. Hoy viven solo en este archivo.
  */
-import type { Puerpera } from "@/lib/types";
-import { imc } from "@/lib/types";
+import type { Puerpera } from "./types.ts";
+import { imc } from "./types.ts";
 
-/** IMC ≥30. Corte OMS, NO del protocolo — confirmar con Vale. */
+/** Umbrales definidos por Vale. Gradúan el factor, no el nivel de riesgo. */
 const IMC_OBESIDAD = 30;
+const IMC_OBESIDAD_SEVERA = 35;
+
+/** Horas de trabajo de parto sobre las que §8 lo considera prolongado. */
+const HORAS_PARTO_PROLONGADO = { nulipara: 20, multipara: 14 };
 
 const contiene = (valores: string[], ...agujas: string[]) =>
   valores.some((v) => agujas.some((a) => v.toLowerCase().includes(a)));
@@ -57,15 +66,31 @@ export function factoresRiesgo(puerpera: Puerpera): string[] {
   if (contiene(f.enfermedades_embarazo, "diabetes")) factores.push("Diabetes gestacional (§8)");
 
   const indice = imc(f);
-  if (indice !== null && indice >= IMC_OBESIDAD) factores.push(`Obesidad, IMC ${indice} (§8)`);
+  if (indice !== null && indice > IMC_OBESIDAD_SEVERA)
+    factores.push(`Obesidad severa, IMC ${indice} (§8, factor de mayor peso)`);
+  else if (indice !== null && indice > IMC_OBESIDAD)
+    factores.push(`Obesidad, IMC ${indice} (§8)`);
 
   if (f.embarazo_multiple === true) factores.push("Embarazo múltiple (§8)");
 
-  // Sin etiquetar: §8 no define desde cuántas horas un parto es prolongado.
-  if (f.horas_trabajo_parto !== null)
-    factores.push(
-      `Trabajo de parto de ${f.horas_trabajo_parto} h (§8 pondera el parto prolongado)`
-    );
+  // El umbral depende de la paridad, así que sin paridad no se puede etiquetar: se entregan
+  // las horas crudas y la matrona juzga. Inventar cuál de los dos cortes aplica sería peor
+  // que no decir nada.
+  if (f.horas_trabajo_parto !== null) {
+    const horas = f.horas_trabajo_parto;
+    if (f.paridad === null) {
+      factores.push(`Trabajo de parto de ${horas} h, paridad no registrada (§8)`);
+    } else {
+      const limite =
+        f.paridad === 0 ? HORAS_PARTO_PROLONGADO.nulipara : HORAS_PARTO_PROLONGADO.multipara;
+      const cual = f.paridad === 0 ? "nulípara" : "multípara";
+      factores.push(
+        horas > limite
+          ? `Parto prolongado: ${horas} h en ${cual} (umbral ${limite} h) (§8)`
+          : `Trabajo de parto de ${horas} h en ${cual}, bajo el umbral de ${limite} h (§8)`
+      );
+    }
+  }
 
   // §8 nombra la inmovilización durante el parto; la anestesia peridural es su vía habitual.
   if (f.uso_anestesia === true)

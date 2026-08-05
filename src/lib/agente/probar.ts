@@ -18,6 +18,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { FICHA_VACIA, type FichaExtendida, type Puerpera } from "../types.ts";
+import { factoresRiesgo } from "../factores.ts";
 import type { Hallazgos, NivelRiesgo, Sospecha } from "../types.ts";
 import { evaluar, type ContextoPuerpera, type SalidaAgente } from "./evaluar.ts";
 import { HERRAMIENTA } from "./herramienta.ts";
@@ -266,9 +268,72 @@ function verificarReglasDuras() {
   console.log("✓ Reglas duras (§7.2 ideación, §6 tromboembolismo) verificadas");
 }
 
+/**
+ * Umbrales de §8 que definió Vale: obesidad IMC >30 / >35, y parto prolongado >20 h en
+ * nulíparas y >14 h en multíparas. Son ramas con cifras, o sea justo donde un off-by-one pasa
+ * inadvertido, y ninguna de ellas debe tocar el nivel de riesgo. Corre offline.
+ */
+function verificarFactores() {
+  const base: Puerpera = {
+    id: "demo",
+    nombre: "Prueba",
+    edad: 28,
+    tipo_parto: "vaginal",
+    fecha_parto: "2026-07-20",
+    prevision: "fonasa_b",
+    region: "Metropolitana",
+    establecimiento: "—",
+    comorbilidades: [],
+    dia_puerperio: 10,
+    ficha_extendida: null,
+  };
+  const con = (ficha: Partial<FichaExtendida>): Puerpera => ({
+    ...base,
+    ficha_extendida: { ...FICHA_VACIA, ...ficha },
+  });
+  const texto = (p: Puerpera) => factoresRiesgo(p).join(" | ");
+
+  // Obesidad: el corte es estricto (>30, >35), así que el límite exacto no gatilla.
+  assert.doesNotMatch(texto(con({ peso_kg: 76.8, talla_cm: 160 })), /Obesidad/); // 30.0 justo
+  assert.match(texto(con({ peso_kg: 77, talla_cm: 160 })), /Obesidad, IMC/); // 30.1, un pelo arriba
+  assert.doesNotMatch(texto(con({ peso_kg: 89.6, talla_cm: 160 })), /severa/); // 35.0 justo
+  assert.match(texto(con({ peso_kg: 82, talla_cm: 160 })), /Obesidad, IMC/); // 32.0
+  assert.doesNotMatch(texto(con({ peso_kg: 82, talla_cm: 160 })), /severa/);
+  assert.match(texto(con({ peso_kg: 95, talla_cm: 160 })), /Obesidad severa/); // 37.1
+  assert.doesNotMatch(texto(con({ peso_kg: 70, talla_cm: 170 })), /Obesidad/); // 24.2
+
+  // Parto prolongado: el umbral depende de la paridad.
+  assert.match(texto(con({ paridad: 0, horas_trabajo_parto: 21 })), /Parto prolongado.*nulípara/);
+  assert.doesNotMatch(texto(con({ paridad: 0, horas_trabajo_parto: 20 })), /Parto prolongado/);
+  assert.match(texto(con({ paridad: 2, horas_trabajo_parto: 15 })), /Parto prolongado.*multípara/);
+  assert.doesNotMatch(texto(con({ paridad: 2, horas_trabajo_parto: 14 })), /Parto prolongado/);
+  // 16 h es prolongado en multípara y no en nulípara: el mismo número, distinta lectura.
+  assert.doesNotMatch(texto(con({ paridad: 0, horas_trabajo_parto: 16 })), /Parto prolongado/);
+  assert.match(texto(con({ paridad: 1, horas_trabajo_parto: 16 })), /Parto prolongado/);
+
+  // Sin paridad no se puede elegir umbral: se entregan las horas y no se etiqueta.
+  const sinParidad = texto(con({ paridad: null, horas_trabajo_parto: 30 }));
+  assert.match(sinParidad, /paridad no registrada/);
+  assert.doesNotMatch(sinParidad, /Parto prolongado/);
+
+  // La excepción única de §8 se nombra explícita para que el modelo la vea.
+  assert.match(
+    texto(con({ enfermedades_embarazo: ["preeclampsia"] })),
+    /excepción única/,
+    "el trastorno hipertensivo del embarazo debe declararse como excepción de §8"
+  );
+
+  // Ficha ausente: solo los factores de la ficha básica, sin inventar nada.
+  assert.deepEqual(factoresRiesgo(base), []);
+  assert.match(factoresRiesgo({ ...base, edad: 38 }).join(" | "), /Edad 38/);
+
+  console.log("✓ Umbrales de §8 (obesidad y parto prolongado) verificados");
+}
+
 async function main() {
   verificarCopiaDelProtocolo();
   verificarReglasDuras();
+  verificarFactores();
 
   const repeticiones = Number(process.argv[2] ?? 1);
   if (!Number.isInteger(repeticiones) || repeticiones < 1) {
