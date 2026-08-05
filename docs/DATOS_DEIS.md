@@ -259,3 +259,41 @@ del pitch y es la respuesta cuando el jurado pregunte si buscaron bien.
 Chile no sabe cuánta morbilidad puerperal tiene, porque el puerperio ocurre después del alta
 y fuera del sistema de registro. Matria no solo acompaña: genera el primer dato longitudinal
 de puerperio del país.
+
+---
+
+## Cumplimiento de la wiki legal del Lab
+
+Referencia: `https://longevidad.benditaia.cl/es/wiki-legal`. Una fila por regla no negociable,
+con dónde se cumple en el repo. Esto es lo que se responde si el jurado o CENS pregunta.
+
+| Regla de la wiki | Cómo se cumple en Matria | Dónde verificarlo |
+|---|---|---|
+| Solo anonimizado y agregado | Ninguna fila viene de una persona. La cohorte se genera; lo que se toma de DEIS/INE son distribuciones agregadas (región, tipo de parto, previsión, edad, comorbilidades) | `scripts/seed.ts`, tabla de fuentes arriba |
+| Prospección sintética | Es exactamente la técnica usada: 200 puérperas generadas que replican los patrones de 80.654 partos reales de 2025 sin exponer a nadie | `scripts/seed.ts` |
+| Fuentes públicas curadas | DEIS egresos 2025, DEIS defunciones, INE series vitales, Anexo 4 del Esquema de Registros 2026. Todas públicas, todas trazadas con año y fecha de corte | secciones anteriores de este documento |
+| Cero PII: ni dataset, ni prompt, ni demo | Sin RUT, teléfono, fecha de nacimiento ni ficha en ningún campo. La etiqueta visible es nombre de pila + inicial + código de caso (`Antonia M. · PM-042`), nunca un nombre completo. El nombre **no** se envía a la API de Claude: el prompt recibe día de puerperio, tipo de parto y texto del mensaje | `supabase/schema.sql` (tabla `puerperas`), `src/lib/agente/prompt.ts` |
+| Prohibido re-identificar | No aplica: no hay dataset de origen con personas que re-identificar. Los microdatos DEIS usados ya vienen agregados y suprimidos en origen | `docs/FILTRADO_DATOS.md` |
+| Privacy by design desde el prototipo | La demo no necesita ni un solo dato identificable para funcionar. Se puede correr entera con la etiqueta reducida a un código | `scripts/seed.ts` |
+| Asistencia, no diagnóstico | El agente clasifica riesgo y escala; tiene prohibido el lenguaje diagnóstico en el system prompt (`nunca "tiene", "presenta un cuadro de", "diagnóstico", "confirmado"`) | `src/lib/agente/prompt.ts`, regla 2 de `CLAUDE.md` |
+| Humano en el circuito | Ninguna acción clínica automática. El sistema no contacta urgencias, no agenda, no indica tratamiento: solo levanta la alerta para la matrona | regla 4 de `CLAUDE.md` |
+| Cita tu evidencia | Cada evaluación obliga a citar la sección del protocolo que la justifica. La columna `cita_protocolo` es `not null`: sin cita no se persiste | `supabase/schema.sql`, `docs/PROTOCOLO_CLINICO.md` |
+| Guardrails clínicos | El system prompt se arma desde el protocolo curado; lo que no está en ese archivo, el agente no lo sabe | `src/lib/agente/prompt.ts` |
+| Claude como motor principal | Llamadas reales a `claude-sonnet-4-6` con `tool_use` para forzar salida estructurada | `src/lib/agente/evaluar.ts`, `src/app/api/evaluar/` |
+| Criterio clínico en el equipo | Vale, matrona, es autora única de `docs/PROTOCOLO_CLINICO.md` | mapa de propiedad en `CLAUDE.md` |
+
+### Gobernanza del dato
+
+- **Dueño:** las fuentes son datasets públicos del Estado (DEIS, INE). No hay convenio de datos
+  que gestionar porque no se recibió ningún dataset de terceros ni datos de pacientes.
+- **Quién autoriza:** no aplica en el prototipo — no hay tratamiento de datos personales de
+  pacientes, así que no hay autorización expresa que recabar (Ley 19.628 / 21.719).
+- **Quién administra:** Rodo mantiene el seed y las fuentes; Vale valida las categorías clínicas.
+
+### Qué cambia al pasar a producción
+
+El prototipo no trata datos personales. Un despliegue real sí lo haría, y ahí el régimen es
+otro: dato sensible bajo Ley 21.719 (plena vigencia 1 de diciembre de 2026), ficha clínica
+reservada bajo Ley 20.584, autorización expresa de la puérpera, derechos ARCO+ y notificación
+de brechas. Los controles técnicos que hoy no existen porque no hay nada que proteger
+—autenticación, RLS, cifrado, log de accesos— son el delta explícito de esa transición.

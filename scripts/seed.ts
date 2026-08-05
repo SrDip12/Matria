@@ -1,6 +1,7 @@
 /**
- * Cohorte sintética. Ninguna persona es real: los nombres se arman combinando dos listas, y no
- * hay RUT, teléfono ni ficha en ningún campo. Idempotente: borra y repuebla las cinco tablas.
+ * Cohorte sintética. Ninguna persona es real: la etiqueta es nombre de pila + inicial + código
+ * de caso (`Antonia M. · PM-042`), nunca un nombre completo, y no hay RUT, teléfono ni ficha en
+ * ningún campo. Idempotente: borra y repuebla las cinco tablas.
  *
  * Todas las distribuciones salen de los datasets de `Datos/`, con la trazabilidad en
  * docs/DATOS_DEIS.md. Lo que aporta cada archivo:
@@ -608,7 +609,10 @@ function generar() {
     const id = crypto.randomUUID();
     puerperas.push({
       id,
-      nombre: `${uno(NOMBRES)} ${uno(APELLIDOS)} ${uno(APELLIDOS)}`,
+      // Nombre de pila + inicial + código de caso: identifica en el panel sin construir un
+      // nombre completo que colisione con personas reales. Wiki legal del Lab: cero PII de
+      // pacientes en dataset, prompt y demo.
+      nombre: `${uno(NOMBRES)} ${uno(APELLIDOS)[0]}. · PM-${String(i + 1).padStart(3, "0")}`,
       edad,
       tipo_parto,
       fecha_parto: isoDia(fecha_parto),
