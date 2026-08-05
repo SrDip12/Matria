@@ -4,9 +4,10 @@
  *   node --env-file=.env.local src/lib/agente/probar.ts       # una corrida
  *   node --env-file=.env.local src/lib/agente/probar.ts 10    # diez corridas seguidas
  *
- * Se corre desde la raíz del repo (el protocolo se lee relativo al cwd). Node avisa
- * MODULE_TYPELESS_PACKAGE_JSON: es cosmético, se calla agregando "type": "module" a
- * package.json y ese archivo no se toca sin avisar al equipo.
+ * Se corre desde la raíz del repo: antes de evaluar nada compara la copia del protocolo
+ * que vive en prompt.ts contra docs/PROTOCOLO_CLINICO.md, y aborta si se desincronizaron.
+ * Node avisa MODULE_TYPELESS_PACKAGE_JSON: es cosmético, se calla agregando "type": "module"
+ * a package.json y ese archivo no se toca sin avisar al equipo.
  *
  * Diez corridas es el criterio del rol: si el nivel de riesgo baila entre corridas, el
  * prompt está flojo. No es "variabilidad del modelo", es trabajo sin terminar.
@@ -14,8 +15,14 @@
  * Los relatos son sintéticos. Nada de datos reales, ni nombres, ni RUT, ni acá ni nunca.
  * Cuando Vale entregue los relatos definitivos, se reemplazan los textos de abajo.
  */
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import type { Hallazgos, NivelRiesgo, Sospecha } from "../types.ts";
 import { evaluar, type ContextoPuerpera, type SalidaAgente } from "./evaluar.ts";
+import { HERRAMIENTA } from "./herramienta.ts";
+import { PROTOCOLO, recortarProtocolo } from "./prompt.ts";
+import { aplicarReglasDuras } from "./riesgo.ts";
 
 const ORDEN: Record<NivelRiesgo, number> = { bajo: 1, medio: 2, alto: 3 };
 
@@ -45,7 +52,12 @@ const CASOS: Caso[] = [
     nivelMinimo: "bajo",
     nivelExacto: true,
     sospechasEsperadas: ["sin_hallazgos"],
-    falseValido: ["fiebre_referida"],
+    // Los dos únicos campos que ella reporta de forma reconocible: "no he tenido fiebre" y
+    // "ya casi no me sale sangre". Ese segundo sí niega un sangrado aumentado, y mandarlo a
+    // null le borraría a la matrona un dato que la puérpera sí entregó.
+    // dificultad_lactancia NO entra: §5.2 agrupa cuatro criterios (acople, dolor, grietas,
+    // alimentación) y "mamando harto" solo cubre uno. Los otros tres nadie los preguntó.
+    falseValido: ["fiebre_referida", "sangrado_aumentado"],
     debenSerNull: [
       "ideacion_autolitica",
       "anhedonia",
@@ -153,7 +165,111 @@ const resumen = (hallazgos: Hallazgos) =>
     .map(([clave, valor]) => `${clave}=${valor}`)
     .join(", ") || "(ninguno)";
 
+/**
+ * El protocolo va copiado dentro de prompt.ts porque `.vercelignore` excluye docs/ y en
+ * producción el archivo no existe. Esa copia se puede pudrir sin que nadie lo note, así que
+ * acá se compara contra el original de Vale antes de gastar una sola llamada a la API.
+ */
+function verificarCopiaDelProtocolo() {
+  const ruta = path.join(process.cwd(), "docs", "PROTOCOLO_CLINICO.md");
+  let enDisco: string;
+  try {
+    enDisco = fs.readFileSync(ruta, "utf8");
+  } catch {
+    console.error(`✗ No se encontró ${ruta}. Correr desde la raíz del repo.`);
+    process.exit(2);
+  }
+
+  const normalizar = (t: string) => recortarProtocolo(t).replace(/\r\n/g, "\n");
+  if (normalizar(enDisco) !== normalizar(PROTOCOLO)) {
+    console.error(
+      "✗ La copia del protocolo en src/lib/agente/prompt.ts ya no calza con " +
+        "docs/PROTOCOLO_CLINICO.md.\n" +
+        "  Antes de copiar nada, mira cuál de los dos es el nuevo. Los dos casos pasan:\n" +
+        "    · Vale editó el protocolo → copiar el documento a la constante PROTOCOLO.\n" +
+        "    · El archivo en disco quedó atrás (p. ej. su versión buena está sin commitear)\n" +
+        "      → NO copiar: eso degradaría el prompt. Recuperar el documento primero.\n" +
+        "  La copia de prompt.ts corresponde a la versión 1.2 del protocolo."
+    );
+    process.exit(2);
+  }
+  console.log("✓ Copia del protocolo sincronizada con docs/PROTOCOLO_CLINICO.md");
+}
+
+/**
+ * Las reglas duras casi nunca se disparan en los 6 casos, porque el modelo clasifica bien.
+ * Existen para el día en que no lo haga, así que se prueban acá con salidas fabricadas: si
+ * solo se ejercitaran a través de la API, serían código sin probar el día que hacen falta.
+ * Corre offline y no gasta una llamada.
+ */
+function verificarReglasDuras() {
+  // Los campos salen del esquema de la herramienta para no mantener una segunda lista.
+  const hallazgosVacios = Object.fromEntries(
+    Object.keys(HERRAMIENTA.input_schema.properties.hallazgos.properties).map((k) => [k, null])
+  ) as unknown as Hallazgos;
+
+  const base: SalidaAgente = {
+    hallazgos: hallazgosVacios,
+    nivel_riesgo: "bajo",
+    sospechas: ["sin_hallazgos"],
+    cita_protocolo: "§1.1",
+    razonamiento: "Sin señales de alarma.",
+    accion_sugerida: "Seguimiento habitual.",
+  };
+
+  // El modelo tuvo un mal día: detectó la ideación pero la clasificó bajo.
+  const ideacion = aplicarReglasDuras({
+    ...base,
+    hallazgos: { ...base.hallazgos, ideacion_autolitica: true },
+  });
+  assert.equal(ideacion.nivel_riesgo, "alto", "ideación autolítica debe forzar alto");
+  assert.equal(ideacion.cita_protocolo, "§7.2");
+  assert.ok(ideacion.sospechas.includes("depresion_postparto"));
+  assert.ok(!ideacion.sospechas.includes("sin_hallazgos"), "sin_hallazgos no convive con alto");
+  assert.match(ideacion.razonamiento, /^Escalado a riesgo alto por §7\.2/);
+
+  // §6 no exige combinación: una disnea aislada basta, aunque el modelo no haya puesto la
+  // sospecha ni haya escalado.
+  const disnea = aplicarReglasDuras({
+    ...base,
+    nivel_riesgo: "medio",
+    sospechas: ["dificultad_lactancia"],
+    hallazgos: { ...base.hallazgos, disnea: true },
+  });
+  assert.equal(disnea.nivel_riesgo, "alto", "disnea aislada debe forzar alto por §6");
+  assert.equal(disnea.cita_protocolo, "§6");
+  assert.ok(disnea.sospechas.includes("tromboembolismo"));
+
+  // Lo mismo por la pierna.
+  const pantorrilla = aplicarReglasDuras({
+    ...base,
+    hallazgos: { ...base.hallazgos, dolor_pantorrilla_unilateral: true },
+  });
+  assert.equal(pantorrilla.nivel_riesgo, "alto");
+
+  // Si el modelo ya escaló, su cita y su razonamiento son más específicos: no se pisan.
+  const yaAlto = aplicarReglasDuras({
+    ...base,
+    nivel_riesgo: "alto",
+    sospechas: ["preeclampsia_postparto"],
+    cita_protocolo: "§2",
+    razonamiento: "Dos signos de emergencia de §2.",
+    hallazgos: { ...base.hallazgos, ideacion_autolitica: true },
+  });
+  assert.equal(yaAlto.cita_protocolo, "§2", "no se pisa la cita del modelo si ya venía alto");
+  assert.equal(yaAlto.razonamiento, "Dos signos de emergencia de §2.");
+  assert.ok(yaAlto.sospechas.includes("depresion_postparto"), "la sospecha igual se registra");
+
+  // Sin gatillo, la salida pasa intacta.
+  assert.deepEqual(aplicarReglasDuras(base), base);
+
+  console.log("✓ Reglas duras (§7.2 ideación, §6 tromboembolismo) verificadas");
+}
+
 async function main() {
+  verificarCopiaDelProtocolo();
+  verificarReglasDuras();
+
   const repeticiones = Number(process.argv[2] ?? 1);
   if (!Number.isInteger(repeticiones) || repeticiones < 1) {
     console.error("Uso: node --env-file=.env.local src/lib/agente/probar.ts [repeticiones]");
