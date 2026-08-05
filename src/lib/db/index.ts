@@ -290,20 +290,54 @@ export async function registrarEvaluacion(
  */
 const RESPUESTA: Record<NivelRiesgo, string> = {
   bajo:
-    "Gracias por contarme cómo estás. En lo que me escribiste no aparecen señales de alarma; " +
-    "seguimos con el control habitual. Escríbeme cuando quieras.",
+    "Gracias por contarme cómo estás, me deja tranquila saberlo. En lo que me escribiste no " +
+    "aparecen señales de alarma, así que seguimos con el control habitual.",
   medio:
-    "Gracias por contarme. Registré una señal que tu matrona tiene que revisar hoy: ya quedó " +
-    "marcada en su panel y ella te va a contactar.",
+    "Gracias por contarme, hiciste bien en avisarme. Acá hay algo que tu matrona tiene que " +
+    "revisar hoy: ya se lo dejé marcado y ella te va a contactar. No estás sola en esto.",
   alto:
-    "Lo que me cuentas es una señal que no puede esperar. Tu matrona ya quedó alertada y te va a " +
-    "llamar. Acude a urgencias de inmediato.",
+    "Gracias por contarme. Lo que me describes es una señal que no puede esperar: tu matrona ya " +
+    "quedó alertada y te va a llamar. Acude a urgencias de inmediato, no lo dejes para más rato.",
+};
+
+/**
+ * Con qué queda abierta la conversación. Una respuesta que cierra deja a la puérpera sin saber
+ * si puede seguir contando, y lo que no cuenta no se evalúa.
+ *
+ * El foco de la pregunta lo define el protocolo §9 según el día de puerperio, así que esto no es
+ * relleno conversacional: es el contacto programado que corresponde a esta semana.
+ */
+function preguntaDelDia(dia: number): string {
+  if (dia <= 7)
+    return (
+      "¿Cómo va el sangrado estos días, y cómo te ha ido con la lactancia? Cuéntame también si " +
+      "notas mal olor o si has andado afiebrada."
+    );
+  if (dia <= 14)
+    return "¿Alcanzaste a ir al control de díada? ¿Y cómo va el sangrado y la lactancia?";
+  if (dia <= 28)
+    return "¿Cómo va la lactancia? ¿Has notado las piernas hinchadas o que volvió el sangrado?";
+  return "¿Y cómo has andado de ánimo estos días? Cuéntame con confianza, aunque no sea nada físico.";
+}
+
+const INVITACION: Record<NivelRiesgo, string> = {
+  bajo: "Cualquier cosa que te preocupe, aunque te parezca chica, escríbeme.",
+  medio: "Mientras tanto quédate conmigo: cuéntame si algo cambia o si aparece algo nuevo.",
+  alto: "Cuéntame cómo te sientes mientras vas en camino, te sigo leyendo.",
 };
 
 async function responder(puerperaId: string, dia_puerperio: number, nivel: NivelRiesgo) {
-  const { error } = await supabase
-    .from("mensajes")
-    .insert({ puerpera_id: puerperaId, autor: "sistema", texto: RESPUESTA[nivel], dia_puerperio });
+  // A la que va a urgencias no se le hace la pregunta de seguimiento del día: ahí lo que
+  // corresponde es que se mueva, no que conteste una encuesta.
+  const cierre =
+    nivel === "alto" ? INVITACION.alto : `${preguntaDelDia(dia_puerperio)} ${INVITACION[nivel]}`;
+
+  const { error } = await supabase.from("mensajes").insert({
+    puerpera_id: puerperaId,
+    autor: "sistema",
+    texto: `${RESPUESTA[nivel]} ${cierre}`,
+    dia_puerperio,
+  });
   fallar("respuesta", error);
 }
 
