@@ -281,6 +281,29 @@ function verificarReglasDuras() {
   assert.equal(yaAlto.razonamiento, "Dos signos de emergencia de §2.");
   assert.ok(yaAlto.sospechas.includes("depresion_postparto"), "la sospecha igual se registra");
 
+  // §2: dos signos de emergencia sin cifra de presión fuerzan alto, aunque el modelo los
+  // haya leído como señal de alarma y no haya ningún antecedente en la ficha.
+  const dosSignosDe2 = aplicarReglasDuras({
+    ...base,
+    nivel_riesgo: "medio",
+    sospechas: ["preeclampsia_postparto"],
+    hallazgos: { ...base.hallazgos, cefalea_intensa: true, alteracion_visual: true },
+  });
+  assert.equal(dosSignosDe2.nivel_riesgo, "alto", "dos signos de §2 deben forzar alto");
+  assert.equal(dosSignosDe2.cita_protocolo, "§2");
+
+  // Uno solo, sin antecedente, es señal de alarma: la regla escala, no inventa emergencias.
+  assert.equal(
+    aplicarReglasDuras({
+      ...base,
+      nivel_riesgo: "medio",
+      sospechas: ["preeclampsia_postparto"],
+      hallazgos: { ...base.hallazgos, cefalea_intensa: true },
+    }).nivel_riesgo,
+    "medio",
+    "un signo aislado de §2 sin antecedente no debe escalar"
+  );
+
   // §8, excepción única: antecedente hipertensivo + una sola señal de §2, sin cifra de
   // presión, también fuerza alto. Antes solo vivía en el prompt.
   const conAntecedente: SalidaAgente = {
@@ -304,7 +327,9 @@ function verificarReglasDuras() {
   // Sin gatillo, la salida pasa intacta.
   assert.deepEqual(aplicarReglasDuras(base), base);
 
-  console.log("✓ Reglas duras (§7.2 ideación, §6 tromboembolismo, §8 excepción) verificadas");
+  console.log(
+    "✓ Reglas duras (§7.2 ideación, §6 tromboembolismo, §2 dos signos, §8 excepción) verificadas"
+  );
 }
 
 /**
