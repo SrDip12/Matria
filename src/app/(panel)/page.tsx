@@ -117,6 +117,8 @@ function DemoPaciente() {
             enviando={enviando}
             error={error}
             onEnviar={enviar}
+            contexto="mia"
+            franja={fila?.franja}
           />
         </div>
       ) : (
@@ -145,12 +147,14 @@ function DemoPaciente() {
 export default function PanelPage() {
   const [demo, setDemo] = useState<Demo | null>(null);
 
-  if (!demo) return <Inicio onElegir={setDemo} />;
-
+  // La barra superior está siempre, también en la puerta: es el chrome del producto, no de una
+  // vista. Sin demo elegida no nombra ninguna ni ofrece cambiarla.
   return (
     <main className="flex h-screen flex-col">
       <TabBar demo={demo} onVolver={() => setDemo(null)} />
-      {demo === "matrona" ? <Dashboard /> : <DemoPaciente />}
+      {demo === null && <Inicio onElegir={setDemo} />}
+      {demo === "matrona" && <Dashboard />}
+      {demo === "paciente" && <DemoPaciente />}
     </main>
   );
 }

@@ -1,10 +1,14 @@
 interface LogoMatriaProps {
   fill: string;
   size?: number;
+  /** El punto de adentro. Se cae bajo 32 px, donde deja de leerse y ensucia la silueta. */
+  punto?: string | null;
 }
 
 /** La silueta: mujer de perfil, guata, un punto adentro. Nunca rotada ni con contorno. */
-export function LogoMatria({ fill, size = 32 }: LogoMatriaProps) {
+export function LogoMatria({ fill, size = 32, punto }: LogoMatriaProps) {
+  const conPunto = punto !== undefined ? punto : size >= 32 ? "var(--color-surface)" : null;
+
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" fill="none" aria-hidden>
       <path
@@ -12,6 +16,7 @@ export function LogoMatria({ fill, size = 32 }: LogoMatriaProps) {
         fill={fill}
       />
       <circle cx="50" cy="18" r="12" fill={fill} />
+      {conPunto && <circle cx="76" cy="80" r="10" fill={conPunto} />}
     </svg>
   );
 }

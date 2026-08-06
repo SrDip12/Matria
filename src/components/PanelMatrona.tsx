@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import { DashboardMatrona } from "@/components/DashboardMatrona";
 import { FilaPuerpera } from "@/components/FilaPuerpera";
+import { Franja42 } from "@/components/Franja42";
 import { PerfilPaciente } from "@/components/PerfilPaciente";
+import { TarjetaAlerta } from "@/components/TarjetaAlerta";
 import { haceCuanto, partirEtiqueta } from "@/lib/formato";
 import { metricas } from "@/lib/metricas";
-import { CLASE_TAG, TONO_RIESGO } from "@/lib/riesgo";
-import { ETIQUETA_RIESGO, type FilaPanel, type NivelRiesgo } from "@/lib/types";
+import { CLASE_TAG, ENCABEZADO_ALERTA, ETIQUETA_ACCION, TONO_RIESGO } from "@/lib/riesgo";
+import { DIAS_PUERPERIO, type FilaPanel, type NivelRiesgo } from "@/lib/types";
 
 interface PanelMatronaProps {
   filas: FilaPanel[];
@@ -16,25 +18,26 @@ interface PanelMatronaProps {
   onResolverAlerta: (alertaId: string) => void;
 }
 
-type Vista = "resumen" | "lista" | "ficha";
+type Vista = "resumen" | "pacientes";
 
 const VISTAS: { id: Vista; etiqueta: string }[] = [
-  { id: "resumen", etiqueta: "Resumen" },
-  { id: "lista", etiqueta: "Lista" },
-  { id: "ficha", etiqueta: "Ficha" },
+  { id: "resumen", etiqueta: "Resumen de la cohorte" },
+  { id: "pacientes", etiqueta: "Mis pacientes" },
 ];
 
 const NIVELES: NivelRiesgo[] = ["alto", "medio", "bajo"];
 
 /**
- * Panel de triage. Tres maneras de mirar la misma cohorte:
+ * Panel de triage. Dos maneras de mirar la misma cohorte y una tercera pantalla que no es una
+ * pestaña sino un destino:
  *
- *   Resumen — cuánto hay en cola y dónde se está complicando el puerperio.
- *   Lista   — las puérperas ordenadas por riesgo. Es donde la alerta aparece en vivo.
- *   Ficha   — el caso abierto, con lo que el agente está ponderando.
+ *   Resumen de la cohorte — cuánto hay en cola y dónde se está complicando el puerperio.
+ *   Mis pacientes         — las puérperas ordenadas por riesgo. Es donde la alerta aparece en vivo.
+ *   El caso abierto       — lo que el agente está ponderando de una, con su conversación al lado.
  *
- * La lista es la vista por defecto a propósito: la rúbrica premia que el jurado vea entrar el
- * mensaje y salir la alerta en la misma pantalla, y eso pasa acá.
+ * El caso se abre encima de la lista y vuelve con "Volver a la lista": una ficha no es una manera
+ * de mirar la cohorte, es haber salido de ella. La conversación queda a la izquierda en las tres,
+ * que es lo que la rúbrica pide — el mensaje entra y la alerta sale sin cambiar de contexto.
  */
 export function PanelMatrona({
   filas,
@@ -42,7 +45,8 @@ export function PanelMatrona({
   onSeleccionar,
   onResolverAlerta,
 }: PanelMatronaProps) {
-  const [vista, setVista] = useState<Vista>("lista");
+  const [vista, setVista] = useState<Vista>("pacientes");
+  const [caso, setCaso] = useState(false);
   const [niveles, setNiveles] = useState<Set<NivelRiesgo>>(new Set());
   const [soloPendientes, setSoloPendientes] = useState(false);
   const [busqueda, setBusqueda] = useState("");
@@ -78,13 +82,23 @@ export function PanelMatrona({
 
   const abrirCaso = (puerperaId: string) => {
     onSeleccionar(puerperaId);
-    setVista("ficha");
+    setCaso(true);
   };
+
+  if (caso && seleccionada) {
+    return (
+      <Caso
+        fila={seleccionada}
+        onResolverAlerta={onResolverAlerta}
+        onVolver={() => setCaso(false)}
+      />
+    );
+  }
 
   return (
     <section className="flex h-full flex-col overflow-hidden">
       <header
-        className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b px-5 py-4"
+        className="flex shrink-0 flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b px-5 py-4"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
         <div className="flex min-w-0 flex-col gap-1.5">
@@ -126,11 +140,11 @@ export function PanelMatrona({
               id={`tab-${id}`}
               aria-selected={vista === id}
               aria-controls={`panel-${id}`}
-              disabled={id === "ficha" && !seleccionada}
               onClick={() => setVista(id)}
               className="chip"
             >
               {etiqueta}
+              {id === "pacientes" && <span className="chip-cifra">{m.total}</span>}
             </button>
           ))}
         </nav>
@@ -143,11 +157,11 @@ export function PanelMatrona({
           </div>
         )}
 
-        {vista === "lista" && (
+        {vista === "pacientes" && (
           <div
             role="tabpanel"
-            id="panel-lista"
-            aria-labelledby="tab-lista"
+            id="panel-pacientes"
+            aria-labelledby="tab-pacientes"
             className="flex flex-col gap-3"
           >
             <div className="flex flex-wrap items-center gap-1.5">
@@ -159,7 +173,7 @@ export function PanelMatrona({
                   aria-pressed={niveles.has(nivel)}
                   className="chip"
                 >
-                  {ETIQUETA_RIESGO[nivel]}
+                  {ETIQUETA_ACCION[nivel]}
                   <span className="chip-cifra">{m.porNivel[nivel]}</span>
                 </button>
               ))}
@@ -204,6 +218,7 @@ export function PanelMatrona({
                   fila={fila}
                   seleccionada={fila.puerpera.id === seleccionadaId}
                   onSeleccionar={() => onSeleccionar(fila.puerpera.id)}
+                  onAbrirCaso={() => abrirCaso(fila.puerpera.id)}
                   onResolverAlerta={onResolverAlerta}
                 />
               ))}
@@ -217,41 +232,110 @@ export function PanelMatrona({
             </div>
           </div>
         )}
+      </div>
+    </section>
+  );
+}
 
-        {vista === "ficha" && seleccionada && (
-          <div
-            role="tabpanel"
-            id="panel-ficha"
-            aria-labelledby="tab-ficha"
-            className="flex flex-col gap-3"
-          >
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h2 className="titulo">{partirEtiqueta(seleccionada.puerpera.nombre)[0]}</h2>
-              <span className="tabular text-[13px] suave">
-                día {seleccionada.puerpera.dia_puerperio} de 42
-              </span>
-              <span className={`${CLASE_TAG[seleccionada.nivel_riesgo]} ml-auto`}>
-                {ETIQUETA_RIESGO[seleccionada.nivel_riesgo]}
-              </span>
-            </div>
+/**
+ * El caso abierto. Arriba, la cabecera con quién es y qué hay que hacer con ella; abajo, primero
+ * lo que está pendiente y después la ficha completa. La conversación no se repite acá: ya está
+ * en la columna de la izquierda, y duplicarla alejaría el input del output.
+ */
+function Caso({
+  fila,
+  onResolverAlerta,
+  onVolver,
+}: {
+  fila: FilaPanel;
+  onResolverAlerta: (alertaId: string) => void;
+  onVolver: () => void;
+}) {
+  const { puerpera, ultima_evaluacion, alertas_pendientes, nivel_riesgo, franja } = fila;
+  const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
 
-            {seleccionada.ultima_evaluacion && (
-              <section className="card p-4">
-                <h3 className="etiqueta mb-2">Última evaluación</h3>
-                <p className="text-[13.5px] leading-relaxed text-pretty">
-                  {seleccionada.ultima_evaluacion.razonamiento}
-                </p>
-                <p className="tabular mt-2 text-xs tenue">
-                  Día {seleccionada.ultima_evaluacion.dia_puerperio} ·{" "}
-                  {ETIQUETA_RIESGO[seleccionada.ultima_evaluacion.nivel_riesgo]} · Protocolo{" "}
-                  {seleccionada.ultima_evaluacion.cita_protocolo}
-                </p>
-              </section>
-            )}
-
-            <PerfilPaciente puerpera={seleccionada.puerpera} clinico />
-          </div>
+  return (
+    <section className="flex h-full flex-col overflow-hidden">
+      <header
+        className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-3"
+        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
+      >
+        <button type="button" onClick={onVolver} className="btn btn-ghost">
+          ← Volver a la lista
+        </button>
+        <span className="subtitulo truncate">{etiqueta}</span>
+        {codigo && (
+          <span className="tabular text-[11px] tenue" translate="no">
+            {codigo}
+          </span>
         )}
+        <span className="tabular text-xs suave">
+          día {puerpera.dia_puerperio} de {DIAS_PUERPERIO}
+        </span>
+        <span className={`${CLASE_TAG[nivel_riesgo]} ml-auto`}>
+          <span
+            aria-hidden
+            className="h-[7px] w-[7px] rounded-full"
+            style={{ background: `var(--riesgo-${nivel_riesgo})` }}
+          />
+          {ETIQUETA_ACCION[nivel_riesgo]}
+        </span>
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="flex flex-col gap-3">
+          {alertas_pendientes.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {alertas_pendientes.map((alerta) => (
+                <li key={alerta.id}>
+                  <TarjetaAlerta
+                    nivel={alerta.nivel}
+                    encabezado={ENCABEZADO_ALERTA[alerta.nivel]}
+                    at={alerta.created_at}
+                  >
+                    <p className="text-[13.5px] font-medium text-pretty">{alerta.titulo}</p>
+                    <p className="text-[13px] leading-relaxed text-pretty suave">
+                      {alerta.accion_sugerida}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                      <span className="tabular text-[11px] tenue">
+                        Protocolo {alerta.cita_protocolo}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onResolverAlerta(alerta.id)}
+                        className="btn btn-secondary ml-auto"
+                        aria-label={`Marcar como resuelta la alerta: ${alerta.titulo}`}
+                      >
+                        Marcar como resuelta
+                      </button>
+                    </div>
+                  </TarjetaAlerta>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {ultima_evaluacion && (
+            <section className="card p-4">
+              <h3 className="etiqueta mb-2">Última evaluación</h3>
+              <p className="text-[13.5px] leading-relaxed text-pretty">
+                {ultima_evaluacion.razonamiento}
+              </p>
+              <p className="tabular mt-2 text-xs tenue">
+                Día {ultima_evaluacion.dia_puerperio} · {ETIQUETA_ACCION[ultima_evaluacion.nivel_riesgo]}{" "}
+                · Protocolo {ultima_evaluacion.cita_protocolo}
+              </p>
+            </section>
+          )}
+
+          <section className="card flex flex-col gap-3 p-4">
+            <h3 className="etiqueta">Franja del puerperio</h3>
+            <Franja42 franja={franja} diaActual={puerpera.dia_puerperio} />
+          </section>
+
+          <PerfilPaciente puerpera={puerpera} clinico />
+        </div>
       </div>
     </section>
   );

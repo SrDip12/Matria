@@ -35,3 +35,21 @@ export const ACCION_RIESGO: Record<NivelRiesgo, string> = {
   medio: "Revisar",
   bajo: "Normal",
 };
+
+/**
+ * La misma acción, dicha entera. Es la etiqueta de los filtros y de la cabecera del caso abierto,
+ * donde hay ancho para leerla: nombra qué hacer con la puérpera, no en qué categoría cayó.
+ * `ETIQUETA_RIESGO` de types.ts sigue nombrando la categoría y no se toca — el archivo es contrato.
+ */
+export const ETIQUETA_ACCION: Record<NivelRiesgo, string> = {
+  alto: "Requiere escalamiento",
+  medio: "Revisar hoy",
+  bajo: "Seguimiento normal",
+};
+
+/** Cómo se rotula la alerta en la cabecera de su tarjeta. */
+export const ENCABEZADO_ALERTA: Record<NivelRiesgo, string> = {
+  alto: "Escalar ahora",
+  medio: "Revisar hoy",
+  bajo: "Seguimiento",
+};

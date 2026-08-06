@@ -34,6 +34,13 @@ export function fechaHora(iso: string): string {
   return FECHA_HORA.format(new Date(iso));
 }
 
+const HORA = new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+/** Solo la hora, para la marca bajo cada burbuja del hilo. */
+export function hora(iso: string): string {
+  return HORA.format(new Date(iso));
+}
+
 /**
  * Cuánto lleva esperando algo, en la unidad más grande que todavía dice algo útil.
  *

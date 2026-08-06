@@ -4,10 +4,9 @@ import { useMemo } from "react";
 import { TarjetaAlerta } from "@/components/TarjetaAlerta";
 import { haceCuanto, partirEtiqueta } from "@/lib/formato";
 import { DIAS_SILENCIO, diasSinContacto, metricas, porcentaje } from "@/lib/metricas";
-import { NIVEL_COLOR, TONO_RIESGO } from "@/lib/riesgo";
+import { ENCABEZADO_ALERTA, ETIQUETA_ACCION, NIVEL_COLOR, TONO_RIESGO } from "@/lib/riesgo";
 import {
   DIAS_PUERPERIO,
-  ETIQUETA_RIESGO,
   ETIQUETA_SOSPECHA,
   type FilaPanel,
   type NivelRiesgo,
@@ -32,8 +31,6 @@ interface DashboardMatronaProps {
 }
 
 const NIVELES: NivelRiesgo[] = ["alto", "medio", "bajo"];
-
-const ENCABEZADO_ALERTA = { alto: "Escalar ahora", medio: "Revisar hoy", bajo: "Seguimiento" };
 
 function Tarjeta({
   titulo,
@@ -118,14 +115,14 @@ function BarraRiesgo({ porNivel, total }: { porNivel: Record<NivelRiesgo, number
       <div
         className="flex h-2.5 gap-px overflow-hidden rounded-[var(--radius-pill)]"
         role="img"
-        aria-label={NIVELES.map((n) => `${ETIQUETA_RIESGO[n]}: ${porNivel[n]}`).join(". ")}
+        aria-label={NIVELES.map((n) => `${ETIQUETA_ACCION[n]}: ${porNivel[n]}`).join(". ")}
       >
         {NIVELES.map((nivel) =>
           porNivel[nivel] > 0 ? (
             <div
               key={nivel}
               style={{ background: NIVEL_COLOR[nivel], flexGrow: porNivel[nivel] }}
-              title={`${ETIQUETA_RIESGO[nivel]}: ${porNivel[nivel]}`}
+              title={`${ETIQUETA_ACCION[nivel]}: ${porNivel[nivel]}`}
             />
           ) : null
         )}
@@ -141,7 +138,7 @@ function BarraRiesgo({ porNivel, total }: { porNivel: Record<NivelRiesgo, number
             <span className="tabular w-8 font-medium" style={{ color: "var(--color-titulo)" }}>
               {porNivel[nivel]}
             </span>
-            <span className="min-w-0 flex-1 truncate suave">{ETIQUETA_RIESGO[nivel]}</span>
+            <span className="min-w-0 flex-1 truncate suave">{ETIQUETA_ACCION[nivel]}</span>
             <span className="tabular shrink-0 text-[11px] tenue">
               {porcentaje(porNivel[nivel], total)} %
             </span>
@@ -265,13 +262,14 @@ function Cola({
   filas: FilaPanel[];
   onAbrirCaso: (puerperaId: string) => void;
 }) {
-  const conAlerta = filas.filter((fila) => fila.alertas_pendientes.length > 0).slice(0, 5);
+  // Seis y no la cola entera: es lo que se llama antes del almuerzo. El resto vive en la lista.
+  const conAlerta = filas.filter((fila) => fila.alertas_pendientes.length > 0).slice(0, 6);
 
   if (conAlerta.length === 0)
     return <p className="sin-datos">No hay alertas pendientes. La cola está al día.</p>;
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="grid gap-2 xl:grid-cols-2">
       {conAlerta.map((fila) => {
         const alerta = fila.alertas_pendientes[0];
         const [etiqueta, codigo] = partirEtiqueta(fila.puerpera.nombre);
@@ -400,10 +398,44 @@ export function DashboardMatrona({ filas, onAbrirCaso }: DashboardMatronaProps) 
         </Tarjeta>
 
         <Tarjeta
-          titulo="Señales activas"
-          ayuda="Sospechas de la última evaluación de cada puérpera con riesgo vigente."
+          titulo="Dejaron de escribir"
+          ayuda="Nadie sabe nada de ellas hace días. No es una alerta del agente: es una ausencia."
         >
-          <Senales sospechas={m.sospechas} />
+          {silenciosas.length === 0 ? (
+            <p className="sin-datos">Todas escribieron en los últimos {DIAS_SILENCIO} días.</p>
+          ) : (
+            <ul className="flex flex-col">
+              {silenciosas.map(({ fila, dias }, indice) => {
+                const [etiqueta, codigo] = partirEtiqueta(fila.puerpera.nombre);
+                return (
+                  <li
+                    key={fila.puerpera.id}
+                    className={indice > 0 ? "border-t" : ""}
+                    style={indice > 0 ? { borderColor: "var(--color-linea)" } : undefined}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onAbrirCaso(fila.puerpera.id)}
+                      className="flex w-full items-baseline gap-2.5 rounded-[var(--radius-sm)] py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
+                    >
+                      <span className="min-w-0 flex-1 truncate font-medium">{etiqueta}</span>
+                      {codigo && (
+                        <span className="tabular shrink-0 text-[11px] tenue" translate="no">
+                          {codigo}
+                        </span>
+                      )}
+                      <span className="tabular shrink-0 text-xs suave">
+                        día {fila.puerpera.dia_puerperio}
+                      </span>
+                      <span className="tabular w-28 shrink-0 text-right text-[11px] tenue">
+                        {dias === null ? "nunca escribió" : `${dias} d en silencio`}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </Tarjeta>
       </div>
 
@@ -415,44 +447,10 @@ export function DashboardMatrona({ filas, onAbrirCaso }: DashboardMatronaProps) 
       </Tarjeta>
 
       <Tarjeta
-        titulo="Dejaron de escribir"
-        ayuda="Nadie sabe nada de ellas hace días. No es una alerta del agente: es una ausencia."
+        titulo="Señales activas"
+        ayuda="Sospechas de la última evaluación de cada puérpera con riesgo vigente."
       >
-        {silenciosas.length === 0 ? (
-          <p className="sin-datos">Todas escribieron en los últimos {DIAS_SILENCIO} días.</p>
-        ) : (
-          <ul className="flex flex-col">
-            {silenciosas.map(({ fila, dias }, indice) => {
-              const [etiqueta, codigo] = partirEtiqueta(fila.puerpera.nombre);
-              return (
-                <li
-                  key={fila.puerpera.id}
-                  className={indice > 0 ? "border-t" : ""}
-                  style={indice > 0 ? { borderColor: "var(--color-linea)" } : undefined}
-                >
-                  <button
-                    type="button"
-                    onClick={() => onAbrirCaso(fila.puerpera.id)}
-                    className="flex w-full items-baseline gap-2.5 rounded-[var(--radius-sm)] py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
-                  >
-                    <span className="min-w-0 flex-1 truncate font-medium">{etiqueta}</span>
-                    {codigo && (
-                      <span className="tabular shrink-0 text-[11px] tenue" translate="no">
-                        {codigo}
-                      </span>
-                    )}
-                    <span className="tabular shrink-0 text-xs suave">
-                      día {fila.puerpera.dia_puerperio}
-                    </span>
-                    <span className="tabular w-28 shrink-0 text-right text-[11px] tenue">
-                      {dias === null ? "nunca escribió" : `${dias} d en silencio`}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <Senales sospechas={m.sospechas} />
       </Tarjeta>
     </div>
   );

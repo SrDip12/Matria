@@ -88,6 +88,14 @@ select,
   touch-action: manipulation;
 }
 
+a {
+  color: var(--marca-600);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--marca-500);
+}
+
 /* --- Escala tipográfica ------------------------------------------------- */
 
 .display {
@@ -357,11 +365,62 @@ select,
   font-size: 13px;
 }
 
+/* --- Hilo ---------------------------------------------------------------- */
+
+/* El mensaje entra desde abajo, cuatro píxeles. Es la única animación de entrada del sistema
+   y existe porque sin ella el mensaje recién enviado aparece de golpe y se pierde. */
+@keyframes msj-entra {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.msj {
+  animation: msj-entra 180ms ease;
+}
+
+/* Espera del agente. Sin spinners: en una herramienta clínica se leen como caída. */
+@keyframes latido {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.escribiendo b {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  animation: latido 1100ms ease-in-out infinite;
+}
+.escribiendo b:nth-child(2) {
+  animation-delay: 160ms;
+}
+.escribiendo b:nth-child(3) {
+  animation-delay: 320ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+
+  .msj {
+    animation: none;
+  }
+  .escribiendo b {
+    animation: none;
+    opacity: 0.5;
   }
 }

@@ -436,40 +436,48 @@ export function FichaOnboarding({ onListo }: Props) {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-4 sm:px-6">
-        <Burbuja de="sistema">{SALUDO}</Burbuja>
-        <Burbuja de="sistema">{SALUDO_2}</Burbuja>
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-6">
+        {/* Apoyado abajo, como el chat: la primera pregunta no puede quedar arriba con media
+            pantalla en blanco debajo. */}
+        <div className="mt-auto flex flex-col gap-2.5">
+          <Burbuja de="sistema">{SALUDO}</Burbuja>
+          <Burbuja de="sistema">{SALUDO_2}</Burbuja>
 
-        {hechas.map((pregunta, i) => (
-          <div key={`${pregunta.id}-${i}`} className="contents">
-            <Burbuja de="sistema">{pregunta.texto}</Burbuja>
-            <Burbuja de="puerpera">{comoTexto(pregunta, respuestas[pregunta.id])}</Burbuja>
-          </div>
-        ))}
+          {hechas.map((pregunta, i) => (
+            <div key={`${pregunta.id}-${i}`} className="contents">
+              <Burbuja de="sistema">{pregunta.texto}</Burbuja>
+              <Burbuja de="puerpera">{comoTexto(pregunta, respuestas[pregunta.id])}</Burbuja>
+            </div>
+          ))}
 
-        {actual && <Burbuja de="sistema">{actual.texto}</Burbuja>}
+          {actual && (
+            <div className="msj flex flex-col">
+              <Burbuja de="sistema">{actual.texto}</Burbuja>
+            </div>
+          )}
 
-        {!actual && !enviando && (
-          <Burbuja de="sistema">
-            Gracias, {String(respuestas.nombre ?? "")}. Con esto ya te puedo acompañar.
-          </Burbuja>
-        )}
+          {!actual && !enviando && (
+            <Burbuja de="sistema">
+              Gracias, {String(respuestas.nombre ?? "")}. Con esto ya te puedo acompañar.
+            </Burbuja>
+          )}
 
-        {error && (
-          <p
-            role="alert"
-            className="self-start rounded-[var(--radius-md)] border px-3.5 py-2.5 text-[13px] text-pretty"
-            style={{
-              borderColor: "var(--riesgo-alto-borde)",
-              background: "var(--riesgo-alto-fondo)",
-              color: "var(--riesgo-alto-tinta)",
-            }}
-          >
-            No pude guardar tu ficha: {error}.
-          </p>
-        )}
+          {error && (
+            <p
+              role="alert"
+              className="self-start rounded-[var(--radius-md)] border px-3.5 py-2.5 text-[13px] text-pretty"
+              style={{
+                borderColor: "var(--riesgo-alto-borde)",
+                background: "var(--riesgo-alto-fondo)",
+                color: "var(--riesgo-alto-tinta)",
+              }}
+            >
+              No pude guardar tu ficha: {error}.
+            </p>
+          )}
 
-        <div ref={finDelHilo} />
+          <div ref={finDelHilo} />
+        </div>
       </div>
 
       <div
