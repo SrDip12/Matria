@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { DashboardMatrona } from "@/components/DashboardMatrona";
 import { FilaPuerpera } from "@/components/FilaPuerpera";
 import { Franja42 } from "@/components/Franja42";
+import { IconoLista, IconoResumen, IconoVolver } from "@/components/Iconos";
 import { PerfilPaciente } from "@/components/PerfilPaciente";
 import { TarjetaAlerta } from "@/components/TarjetaAlerta";
 import { haceCuanto, partirEtiqueta } from "@/lib/formato";
@@ -16,13 +17,19 @@ interface PanelMatronaProps {
   seleccionadaId: string | null;
   onSeleccionar: (puerperaId: string) => void;
   onResolverAlerta: (alertaId: string) => void;
+  /**
+   * El canal de la puérpera. Se monta solo dentro del caso abierto: en la cohorte de doscientas
+   * no hay ninguna conversación que mirar todavía, y tenerla ahí a la izquierda le comía un
+   * tercio de la pantalla a la lista sin decir nada.
+   */
+  conversacion: React.ReactNode;
 }
 
 type Vista = "resumen" | "pacientes";
 
-const VISTAS: { id: Vista; etiqueta: string }[] = [
-  { id: "resumen", etiqueta: "Resumen de la cohorte" },
-  { id: "pacientes", etiqueta: "Mis pacientes" },
+const VISTAS: { id: Vista; etiqueta: string; Icono: typeof IconoResumen }[] = [
+  { id: "resumen", etiqueta: "Resumen de la cohorte", Icono: IconoResumen },
+  { id: "pacientes", etiqueta: "Mis pacientes", Icono: IconoLista },
 ];
 
 const NIVELES: NivelRiesgo[] = ["alto", "medio", "bajo"];
@@ -33,17 +40,20 @@ const NIVELES: NivelRiesgo[] = ["alto", "medio", "bajo"];
  *
  *   Resumen de la cohorte — cuánto hay en cola y dónde se está complicando el puerperio.
  *   Mis pacientes         — las puérperas ordenadas por riesgo. Es donde la alerta aparece en vivo.
- *   El caso abierto       — lo que el agente está ponderando de una, con su conversación al lado.
+ *   El caso abierto       — la pantalla dividida: su conversación a la izquierda y lo que el
+ *                           agente está ponderando a la derecha.
  *
  * El caso se abre encima de la lista y vuelve con "Volver a la lista": una ficha no es una manera
- * de mirar la cohorte, es haber salido de ella. La conversación queda a la izquierda en las tres,
- * que es lo que la rúbrica pide — el mensaje entra y la alerta sale sin cambiar de contexto.
+ * de mirar la cohorte, es haber salido de ella. La pantalla dividida vive ahí y solo ahí — es el
+ * único momento en que hay una conversación concreta que mirar, y es donde el mensaje entra y la
+ * alerta sale sin cambiar de contexto.
  */
 export function PanelMatrona({
   filas,
   seleccionadaId,
   onSeleccionar,
   onResolverAlerta,
+  conversacion,
 }: PanelMatronaProps) {
   const [vista, setVista] = useState<Vista>("pacientes");
   const [caso, setCaso] = useState(false);
@@ -89,6 +99,7 @@ export function PanelMatrona({
     return (
       <Caso
         fila={seleccionada}
+        conversacion={conversacion}
         onResolverAlerta={onResolverAlerta}
         onVolver={() => setCaso(false)}
       />
@@ -96,7 +107,7 @@ export function PanelMatrona({
   }
 
   return (
-    <section className="flex h-full flex-col overflow-hidden">
+    <section className="vista-entra flex h-full flex-col overflow-hidden">
       <header
         className="flex shrink-0 flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b px-5 py-4"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
@@ -132,7 +143,7 @@ export function PanelMatrona({
         </div>
 
         <nav className="flex gap-1" role="tablist" aria-label="Vistas del panel">
-          {VISTAS.map(({ id, etiqueta }) => (
+          {VISTAS.map(({ id, etiqueta, Icono }) => (
             <button
               key={id}
               type="button"
@@ -143,6 +154,7 @@ export function PanelMatrona({
               onClick={() => setVista(id)}
               className="chip"
             >
+              <Icono size={14} />
               {etiqueta}
               {id === "pacientes" && <span className="chip-cifra">{m.total}</span>}
             </button>
@@ -238,16 +250,20 @@ export function PanelMatrona({
 }
 
 /**
- * El caso abierto. Arriba, la cabecera con quién es y qué hay que hacer con ella; abajo, primero
- * lo que está pendiente y después la ficha completa. La conversación no se repite acá: ya está
- * en la columna de la izquierda, y duplicarla alejaría el input del output.
+ * El caso abierto: la pantalla dividida. Su conversación a la izquierda (35 %) y a la derecha
+ * (65 %) lo que está pendiente, la última evaluación, la franja y la ficha completa.
+ *
+ * Es acá y no en la lista donde el jurado ve el recorrido entero sin cambiar de contexto: entra
+ * el mensaje por la izquierda, el agente lo interpreta y la alerta sale a la derecha.
  */
 function Caso({
   fila,
+  conversacion,
   onResolverAlerta,
   onVolver,
 }: {
   fila: FilaPanel;
+  conversacion: React.ReactNode;
   onResolverAlerta: (alertaId: string) => void;
   onVolver: () => void;
 }) {
@@ -255,13 +271,14 @@ function Caso({
   const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
 
   return (
-    <section className="flex h-full flex-col overflow-hidden">
+    <section className="vista-entra flex h-full flex-col overflow-hidden">
       <header
         className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-3"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
         <button type="button" onClick={onVolver} className="btn btn-ghost">
-          ← Volver a la lista
+          <IconoVolver size={15} />
+          Volver a la lista
         </button>
         <span className="subtitulo truncate">{etiqueta}</span>
         {codigo && (
@@ -282,7 +299,15 @@ function Caso({
         </span>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+      <div className="flex min-h-0 flex-1">
+        <div
+          className="min-h-0 w-[35%] border-r"
+          style={{ borderColor: "var(--color-border)" }}
+        >
+          {conversacion}
+        </div>
+
+        <div className="min-h-0 w-[65%] overflow-y-auto px-5 py-4">
         <div className="flex flex-col gap-3">
           {alertas_pendientes.length > 0 && (
             <ul className="flex flex-col gap-2">
@@ -335,6 +360,7 @@ function Caso({
           </section>
 
           <PerfilPaciente puerpera={puerpera} clinico />
+          </div>
         </div>
       </div>
     </section>

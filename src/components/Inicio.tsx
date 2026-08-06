@@ -1,5 +1,6 @@
 "use client";
 
+import { IconoFicha, IconoLazo } from "@/components/Iconos";
 import { LogoMatria } from "@/components/LogoMatria";
 
 export type Demo = "matrona" | "paciente";
@@ -21,23 +22,26 @@ interface Puerta {
   titulo: string;
   descripcion: string;
   detalle: string[];
+  Icono: typeof IconoLazo;
 }
 
 const PUERTAS: Puerta[] = [
   {
     id: "paciente",
+    Icono: IconoLazo,
     zona: "Seguimiento de la puérpera",
     titulo: "Soy la puérpera",
     descripcion:
-      "Completas tu ficha de ingreso conversando, empiezas a contarle al acompañamiento cómo estás y ves qué pasó con lo que contaste.",
+      "Completas tu ficha de ingreso en tres pasos, empiezas a contarle al acompañamiento cómo estás y ves qué pasó con lo que contaste.",
     detalle: [
-      "Ficha de ingreso, pregunta por pregunta",
+      "Ficha de ingreso en tres pasos",
       "Chat con el acompañamiento",
       "Mis avisos y cómo he estado",
     ],
   },
   {
     id: "matrona",
+    Icono: IconoFicha,
     zona: "Panel de la matrona",
     titulo: "Soy la matrona",
     descripcion:
@@ -52,8 +56,11 @@ const PUERTAS: Puerta[] = [
 
 function TarjetaVista({ puerta, onEntrar }: { puerta: Puerta; onEntrar: () => void }) {
   return (
-    <div className="card flex flex-col gap-2.5 p-5">
-      <p className="etiqueta">{puerta.zona}</p>
+    <div className="card flex flex-col gap-2.5 p-5 transition-colors hover:border-[var(--marca-200)]">
+      <p className="etiqueta flex items-center gap-2">
+        <puerta.Icono size={15} />
+        {puerta.zona}
+      </p>
       <h2 className="subtitulo">{puerta.titulo}</h2>
       <p className="flex-1 text-[13.5px] leading-relaxed text-pretty suave">{puerta.descripcion}</p>
       <ul className="flex flex-col gap-1.5">
@@ -79,7 +86,7 @@ function TarjetaVista({ puerta, onEntrar }: { puerta: Puerta; onEntrar: () => vo
 export function Inicio({ onElegir }: { onElegir: (demo: Demo) => void }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-[860px] flex-col gap-7 px-6 pt-14 pb-10">
+      <div className="vista-entra mx-auto flex w-full max-w-[860px] flex-col gap-7 px-6 pt-14 pb-10">
         <div className="flex flex-col gap-3">
           <LogoMatria fill="var(--marca-500)" size={44} />
           <h1 className="display">Acompañamiento longitudinal del puerperio</h1>

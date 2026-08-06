@@ -83,7 +83,14 @@ Una sola pantalla dividida:
 - **Derecha:** panel de la matrona. Lista de puérperas ordenada por riesgo, con las alertas
   actualizándose en vivo cuando entra un mensaje. Tiene dos pestañas —resumen de la cohorte y
   mis pacientes, que es la que abre por defecto— y el caso abierto, que no es pestaña sino un
-  destino con "volver a la lista". La conversación de la izquierda queda fija en las tres.
+  destino con "volver a la lista".
+
+**La pantalla dividida vive dentro del caso abierto.** En el resumen y en la lista el panel ocupa
+el ancho completo: sobre doscientas puérperas no hay ninguna conversación concreta que mirar, y
+tener una fija a la izquierda le comía un tercio de la pantalla a la lista sin decir nada. Al
+abrir un caso aparecen las dos columnas —su canal a la izquierda al 35 %, la ficha y las alertas
+a la derecha al 65 %— y ahí es donde el jurado ve el recorrido entero: entra el mensaje, el
+agente lo interpreta, sale la alerta. **Ese es el momento de la rúbrica y no se toca.**
 
 El jurado tiene que ver, en la misma pantalla y sin cambiar de contexto: mensaje entra →
 agente lo interpreta → alerta aparece priorizada. Esa es toda la demo. Si algo no sirve a
@@ -213,13 +220,22 @@ contorno rojo 500. El corte de semana es un espacio de 6 px cada 7 celdas, no un
 único elemento con licencia para ser llamativo; todo lo demás se mantiene sobrio. No se anima,
 no lleva gradiente y no se reemplaza por tarjetas con íconos grandes.
 
-**Animación.** 120 ms `ease` en color de fondo, borde y tinta. Lo único que entra animado es el
-mensaje del hilo (180 ms) y los puntos de la espera del agente. **Sin spinners:** en una
-herramienta clínica se leen como caída, el estado de espera es texto ("Leyendo lo que me
-contaste…", "Evaluando…"). Todo respeta `prefers-reduced-motion`.
+**Animación.** 120 ms `ease` en color de fondo, borde y tinta. Además: el mensaje del hilo entra
+en 180 ms, una vista nueva entra en 200 ms (`.vista-entra`, sube 6 px), los puntos de la espera
+del agente laten, y botones y chips ceden medio píxel al apretarlos. Nada más se anima: sin
+entradas de listas, sin rebotes, sin barras que crecen, sin salidas —esperar a que algo se
+desvanezca para ver lo siguiente es tiempo regalado. **Sin spinners:** en una herramienta clínica
+se leen como caída, el estado de espera es texto ("Leyendo lo que me contaste…", "Evaluando…").
+Todo respeta `prefers-reduced-motion`.
 
 Sin gradientes, sin sombras difusas, sin blur, sin emojis, sin ilustraciones, sin fotografía.
-Matria no tiene set de iconos: si hace falta uno, se pregunta antes de dibujarlo.
+
+**Iconos.** `src/components/Iconos.tsx`, dibujados para Matria: trazo de 1.5, esquinas redondas,
+`currentColor` y sin relleno. Heredan la tinta de quien los contiene, así que **nunca introducen
+color** y la regla de que el color es del riesgo queda intacta. Van en navegación, cabeceras de
+zona y botones. **No van dentro de una fila del panel priorizado, de una tarjeta de alerta ni de
+una cifra clínica:** ahí la atención es del riesgo y un icono compite con ella. Si hace falta uno
+nuevo, se dibuja en ese archivo y con esas reglas; nada de traer una librería.
 
 **Estados vacíos.** Un vacío dice qué significa el vacío, no que falta un dato: "Sin señales de
 alarma en las últimas 24 horas", "No hay alertas pendientes. La cola está al día". Un campo sin
@@ -238,9 +254,14 @@ autenticación · integración real con WhatsApp · multi-tenant · RLS · panel
 envío de correos · exportar a PDF · modo oscuro · responsive más allá de la pantalla del demo ·
 edición de protocolo desde la UI · internacionalización · página de marketing
 
-**El onboarding de la puérpera salió de esta lista.** Se construyó: recoge los antecedentes que
-el protocolo §8 usa para modificar el riesgo basal, y esos factores entran al agente en cada
-evaluación. Sin ficha, el agente evalúa igual pero solo con la ficha básica.
+**El onboarding de la puérpera salió de esta lista.** Se construyó: `FichaIngreso.tsx`, tres
+pasos más la pantalla del nombre. Recoge los antecedentes que el protocolo §8 usa para modificar
+el riesgo basal, y esos factores entran al agente en cada evaluación. Sin ficha, el agente evalúa
+igual pero solo con la ficha básica.
+
+Cada campo de esa ficha alimenta un factor de `src/lib/factores.ts`: peso y talla dan el IMC,
+horas y paridad dan el parto prolongado, y el síndrome hipertensivo del embarazo es la excepción
+única de §8. **Sacar un campo es perder su factor** — si se saca, se avisa.
 
 ## 13. Si estás bloqueado
 

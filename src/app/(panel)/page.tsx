@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Conversacion } from "@/components/Conversacion";
-import { FichaOnboarding } from "@/components/FichaOnboarding";
+import { FichaIngreso } from "@/components/FichaIngreso";
+import { IconoAviso, IconoChat, IconoFicha, IconoFranja } from "@/components/Iconos";
 import { Inicio, type Demo } from "@/components/Inicio";
 import { MiEvolucion } from "@/components/MiEvolucion";
 import { Notificaciones } from "@/components/Notificaciones";
@@ -13,6 +14,10 @@ import { useConversacion } from "@/lib/hooks/useConversacion";
 import { usePanel } from "@/lib/hooks/usePanel";
 import type { Puerpera } from "@/lib/types";
 
+/**
+ * Lado de la matrona. El panel ocupa la pantalla completa: la pantalla dividida aparece dentro
+ * del caso abierto, que es el único momento en que hay una conversación concreta que mirar.
+ */
 function Dashboard() {
   const { filas, refrescar, resolverAlerta } = usePanel();
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
@@ -26,23 +31,21 @@ function Dashboard() {
 
   return (
     <div className="flex min-h-0 flex-1">
-      <div className="w-[35%] border-r" style={{ borderColor: "var(--color-border)" }}>
-        <Conversacion
-          puerpera={puerpera}
-          mensajes={mensajes}
-          enviando={enviando}
-          error={error}
-          onEnviar={enviar}
-        />
-      </div>
-      <div className="w-[65%]">
-        <PanelMatrona
-          filas={filas}
-          seleccionadaId={seleccionadaId}
-          onSeleccionar={setSeleccionadaId}
-          onResolverAlerta={resolverAlerta}
-        />
-      </div>
+      <PanelMatrona
+        filas={filas}
+        seleccionadaId={seleccionadaId}
+        onSeleccionar={setSeleccionadaId}
+        onResolverAlerta={resolverAlerta}
+        conversacion={
+          <Conversacion
+            puerpera={puerpera}
+            mensajes={mensajes}
+            enviando={enviando}
+            error={error}
+            onEnviar={enviar}
+          />
+        }
+      />
     </div>
   );
 }
@@ -57,21 +60,21 @@ function Dashboard() {
  * que ver el mensaje entrar y la alerta salir sin cambiar de contexto.
  */
 const PESTANAS = [
-  { id: "chat", etiqueta: "Chat" },
-  { id: "avisos", etiqueta: "Mis avisos" },
-  { id: "evolucion", etiqueta: "Cómo he estado" },
-  { id: "perfil", etiqueta: "Mi ficha" },
+  { id: "chat", etiqueta: "Chat", Icono: IconoChat },
+  { id: "avisos", etiqueta: "Mis avisos", Icono: IconoAviso },
+  { id: "evolucion", etiqueta: "Cómo he estado", Icono: IconoFranja },
+  { id: "perfil", etiqueta: "Mi ficha", Icono: IconoFicha },
 ] as const;
 
 type Pestana = (typeof PESTANAS)[number]["id"];
 
-function DemoPaciente() {
+function DemoPaciente({ onVolverInicio }: { onVolverInicio: () => void }) {
   const { filas, refrescar } = usePanel();
   const [puerpera, setPuerpera] = useState<Puerpera | null>(null);
   const [pestana, setPestana] = useState<Pestana>("chat");
   const { mensajes, enviando, error, enviar } = useConversacion(puerpera?.id ?? null, refrescar);
 
-  if (!puerpera) return <FichaOnboarding onListo={setPuerpera} />;
+  if (!puerpera) return <FichaIngreso onListo={setPuerpera} onVolverInicio={onVolverInicio} />;
 
   // Se relee del panel para que el día de puerperio, la ficha y los avisos sigan al día tras
   // cada poll. Mientras el primer poll no vuelve, se muestra lo que devolvió el onboarding.
@@ -87,7 +90,7 @@ function DemoPaciente() {
         aria-label="Mi seguimiento"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
-        {PESTANAS.map(({ id, etiqueta }) => (
+        {PESTANAS.map(({ id, etiqueta, Icono }) => (
           <button
             key={id}
             type="button"
@@ -98,6 +101,7 @@ function DemoPaciente() {
             onClick={() => setPestana(id)}
             className="chip"
           >
+            <Icono size={14} />
             {etiqueta}
             {id === "avisos" && pendientes > 0 && <span className="chip-cifra">{pendientes}</span>}
           </button>
@@ -123,10 +127,11 @@ function DemoPaciente() {
         </div>
       ) : (
         <div
+          key={pestana}
           role="tabpanel"
           id={`panel-${pestana}`}
           aria-labelledby={`tab-${pestana}`}
-          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6"
+          className="vista-entra min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6"
         >
           {pestana === "avisos" && <Notificaciones fila={fila} />}
           {pestana === "evolucion" && <MiEvolucion fila={fila} mensajes={mensajes} />}
@@ -154,7 +159,7 @@ export default function PanelPage() {
       <TabBar demo={demo} onVolver={() => setDemo(null)} />
       {demo === null && <Inicio onElegir={setDemo} />}
       {demo === "matrona" && <Dashboard />}
-      {demo === "paciente" && <DemoPaciente />}
+      {demo === "paciente" && <DemoPaciente onVolverInicio={() => setDemo(null)} />}
     </main>
   );
 }

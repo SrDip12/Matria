@@ -1,5 +1,6 @@
 "use client";
 
+import { IconoCambiar, IconoFicha, IconoLazo } from "@/components/Iconos";
 import { LogoMatria } from "@/components/LogoMatria";
 import type { Demo } from "@/components/Inicio";
 
@@ -9,48 +10,60 @@ interface TabBarProps {
   onVolver: () => void;
 }
 
-const ETIQUETA: Record<Demo, string> = {
-  matrona: "Panel de la matrona",
-  paciente: "Seguimiento de la puérpera",
+const VISTA: Record<Demo, { etiqueta: string; Icono: typeof IconoFicha }> = {
+  matrona: { etiqueta: "Panel de la matrona", Icono: IconoFicha },
+  paciente: { etiqueta: "Seguimiento de la puérpera", Icono: IconoLazo },
 };
 
-/** Barra superior del producto: la marca sobre rojo 900 y el nombre de la vista en versalitas. */
+/**
+ * Barra superior del producto: la marca sobre rojo 900 y el nombre de la vista en versalitas.
+ *
+ * El remate de abajo es rojo 500 a 1 px y no una sombra: el sistema no tiene sombras y una franja
+ * de marca separa la barra del contenido sin inventar profundidad.
+ */
 export function TabBar({ demo, onVolver }: TabBarProps) {
+  const vista = demo ? VISTA[demo] : null;
+
   return (
     <header
-      className="flex shrink-0 items-center gap-4 px-5 py-3"
-      style={{ background: "var(--marca-900)" }}
+      className="flex shrink-0 items-center gap-4 border-b px-5 py-3"
+      style={{ background: "var(--marca-900)", borderColor: "var(--marca-700)" }}
     >
       <div className="flex items-center gap-2.5">
-        <LogoMatria fill="var(--marca-300)" size={24} punto={null} />
-        <span className="text-[17px] font-medium tracking-tight" style={{ color: "#ffffff" }}>
-          Matria
+        <LogoMatria fill="var(--marca-300)" size={26} punto="var(--marca-900)" />
+        <span className="flex flex-col leading-none">
+          <span className="text-[17px] font-medium tracking-tight" style={{ color: "#ffffff" }}>
+            Matria
+          </span>
+          <span
+            className="mt-0.5 text-[9px] font-semibold tracking-[0.16em] uppercase"
+            style={{ color: "color-mix(in srgb, var(--marca-200) 70%, transparent)" }}
+          >
+            Puerperio
+          </span>
         </span>
       </div>
 
-      {demo && (
+      {vista && (
         <>
           <span
-            className="h-4 w-px"
+            className="h-6 w-px"
             style={{ background: "color-mix(in srgb, #ffffff 22%, transparent)" }}
             aria-hidden
           />
           <span
-            className="etiqueta"
+            className="etiqueta flex items-center gap-2"
             style={{ color: "color-mix(in srgb, var(--marca-100) 85%, transparent)" }}
           >
-            {ETIQUETA[demo]}
+            <vista.Icono size={15} />
+            {vista.etiqueta}
           </span>
           <button
             type="button"
             onClick={onVolver}
-            className="btn ml-auto"
-            style={{
-              color: "#ffffff",
-              background: "color-mix(in srgb, #ffffff 12%, transparent)",
-              border: "1px solid color-mix(in srgb, #ffffff 18%, transparent)",
-            }}
+            className="btn btn-sobre-marca ml-auto"
           >
+            <IconoCambiar size={15} />
             Cambiar de vista
           </button>
         </>

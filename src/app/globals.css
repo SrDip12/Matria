@@ -243,6 +243,25 @@ a:hover {
   color: var(--color-text);
 }
 
+/* Único botón que vive sobre la barra roja. El blanco se mezcla con color-mix en vez de usar
+   un gris propio, para que siga siendo la misma superficie y no un parche encima. */
+.btn-sobre-marca {
+  color: #ffffff;
+  background: color-mix(in srgb, #ffffff 12%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 18%, transparent);
+}
+.btn-sobre-marca:hover:not(:disabled) {
+  background: color-mix(in srgb, #ffffff 20%, transparent);
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
+}
+
+/* Los botones y chips ceden medio píxel al apretarlos. No es una escala ni un rebote: es el
+   acuse de recibo mínimo para que el clic no se sienta muerto. */
+.btn:active:not(:disabled),
+.chip:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+
 /* Chip de filtro y pestaña. El estado activo lo lleva el atributo ARIA, no una clase paralela:
    así no hay manera de pintarlo activo y dejarlo mudo para un lector de pantalla. */
 .chip {
@@ -365,6 +384,25 @@ a:hover {
   font-size: 13px;
 }
 
+/* --- Cambio de pantalla -------------------------------------------------- */
+
+/* Una vista nueva entra con seis píxeles de subida. Sirve para que al abrir un caso o cambiar
+   de pestaña se note que la pantalla cambió y no que se reordenó sola. No hay salida animada:
+   esperar a que algo se desvanezca para ver lo siguiente es tiempo regalado. */
+@keyframes vista-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.vista-entra {
+  animation: vista-entra 200ms ease-out;
+}
+
 /* --- Hilo ---------------------------------------------------------------- */
 
 /* El mensaje entra desde abajo, cuatro píxeles. Es la única animación de entrada del sistema
@@ -416,11 +454,16 @@ a:hover {
     animation-duration: 0.01ms !important;
   }
 
-  .msj {
+  .msj,
+  .vista-entra {
     animation: none;
   }
   .escribiendo b {
     animation: none;
     opacity: 0.5;
+  }
+  .btn:active:not(:disabled),
+  .chip:active:not(:disabled) {
+    transform: none;
   }
 }
