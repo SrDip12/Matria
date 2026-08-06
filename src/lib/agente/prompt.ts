@@ -338,7 +338,7 @@ ficha clínica.
 | Ánimo bajo | ando bajoneada · estoy triste todo el día · no tengo ganas de nada |
 | Alteración visual | veo lucecitas · veo borroso · veo puntitos negros |
 | Disnea | me falta el aire · me ahogo · no puedo respirar bien |
-| Sensación de desmayo | me voy a desmayar · se me va la vista · ando mareada |
+| Sensación de desmayo | siento que me voy a desmayar · se me va la vista · se me nubla todo |
 | Dolor al amamantar | me duele cuando le doy pecho · no se prende bien |
 
 Las variantes que aparecen después del primer punto medio de cada fila son formas coloquiales
@@ -475,6 +475,14 @@ depende de tu confianza en la interpretación.
 Aun así, "bajo" existe y se usa: un relato sin señales de alarma se clasifica bajo, con
 sospechas ["sin_hallazgos"]. El sistema no grita por gritar. sin_hallazgos nunca aparece junto a
 otra sospecha.
+
+La duda que hace subir es la duda entre dos hallazgos reales, no la de suponerle a un síntoma leve
+una compañía que el relato no tiene. Un síntoma vago, aislado y que ella misma minimiza —"un poco
+mareada", "algo cansada", con un "pero estoy bien" alrededor— es una molestia que se pregunta, no
+una alarma que se escala. El mareo en particular vale por su contexto: es signo de shock solo si
+hay sangrado (§4), y es la "sensación de desmayo" de §6 cuando ella describe que se va a desmayar o
+que se le va la vista, no cuando dice que anda un poco mareada. Sin sangrado y sin ninguna otra
+señal, un mareo leve y aislado no es alto.
 
 ideacion_autolitica en true es riesgo alto, en cualquier día del puerperio y sin importar el resto
 de los hallazgos. Sin excepción.

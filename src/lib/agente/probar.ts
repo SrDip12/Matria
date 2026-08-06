@@ -34,6 +34,8 @@ type Caso = {
   texto: string;
   /** Nivel mínimo aceptable: ante duda el protocolo manda escalar, nunca bajar. */
   nivelMinimo: NivelRiesgo;
+  /** Techo aceptable: para los relatos donde el error a vigilar es sobre-escalar, no quedarse corto. */
+  nivelMaximo?: NivelRiesgo;
   /** Para el caso sin hallazgos: acá el nivel tiene que ser exactamente el mínimo. */
   nivelExacto?: boolean;
   sospechasEsperadas?: Sospecha[];
@@ -69,6 +71,24 @@ const CASOS: Caso[] = [
       "dolor_epigastrico",
       "loquios_mal_olor",
       "secrecion_herida",
+    ],
+  },
+  {
+    // El caso de la captura: mareo leve, aislado y minimizado no es emergencia. §4 lo hace signo
+    // de shock solo con sangrado, y §6 pide una "sensación de desmayo" descrita, no un "un poco
+    // mareada". Sin nada que lo acompañe, no debe dispararse a alto.
+    titulo: "Mareo leve aislado y minimizado, día 6 (no debe sobre-escalar)",
+    contexto: { dia_puerperio: 6, tipo_parto: "vaginal", edad: 27 },
+    texto: "hola estoy bien, me siento bien, un poco mareada nomás",
+    nivelMinimo: "bajo",
+    nivelMaximo: "medio",
+    debenSerNull: [
+      "sangrado_aumentado",
+      "disnea",
+      "dolor_pantorrilla_unilateral",
+      "alteracion_visual",
+      "cefalea_intensa",
+      "ideacion_autolitica",
     ],
   },
   {
@@ -157,6 +177,8 @@ function revisar(caso: Caso, salida: SalidaAgente): string[] {
     fallas.push(`nivel ${nivel_riesgo}, se esperaba al menos ${caso.nivelMinimo}`);
   if (caso.nivelExacto && nivel_riesgo !== caso.nivelMinimo)
     fallas.push(`nivel ${nivel_riesgo}, se esperaba exactamente ${caso.nivelMinimo}`);
+  if (caso.nivelMaximo && ORDEN[nivel_riesgo] > ORDEN[caso.nivelMaximo])
+    fallas.push(`nivel ${nivel_riesgo}, se esperaba a lo más ${caso.nivelMaximo}`);
 
   for (const sospecha of caso.sospechasEsperadas ?? [])
     if (!sospechas.includes(sospecha)) fallas.push(`falta la sospecha ${sospecha}`);

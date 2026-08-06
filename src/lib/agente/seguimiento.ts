@@ -15,17 +15,24 @@
  */
 import type { Hallazgos, NivelRiesgo, Sospecha } from "../types.ts";
 
-/** Cómo abre la respuesta, según lo que corresponde hacer hoy (§1.1). */
-const RECONOCIMIENTO: Record<NivelRiesgo, string> = {
-  bajo:
-    "Gracias por contarme cómo estás, me deja tranquila saberlo. En lo que me escribiste no " +
-    "aparecen señales de alarma, así que seguimos con el control habitual.",
-  medio:
-    "Gracias por contarme, hiciste bien en avisarme. Acá hay algo que tu matrona tiene que " +
-    "revisar hoy: ya se lo dejé marcado y ella te va a contactar.",
-  alto:
-    "Gracias por contarme. Lo que me describes es una señal que no puede esperar: tu matrona ya " +
-    "quedó alertada y te va a llamar. Acude a urgencias de inmediato, no lo dejes para más rato.",
+/**
+ * Cómo abre la respuesta, según lo que corresponde hacer hoy (§1.1). Corto a propósito y sin abrir
+ * siempre con "gracias". Son dos aperturas por nivel: la segunda existe solo para no mandar el
+ * mismo mensaje exacto dos veces seguidas (ver respuestaParaElla).
+ */
+const APERTURA: Record<NivelRiesgo, [string, string]> = {
+  bajo: [
+    "Te leo. No veo señales de alarma; seguimos con el control habitual.",
+    "Anotado. Por lo que me cuentas no hay señales de alarma; seguimos como vamos.",
+  ],
+  medio: [
+    "Esto lo tiene que mirar tu matrona hoy: ya se lo dejé marcado.",
+    "Hay algo acá para tu matrona; quedó marcado y lo revisa hoy.",
+  ],
+  alto: [
+    "Esto no puede esperar: anda a urgencias ahora. Tu matrona ya quedó alertada.",
+    "Necesito que vayas a urgencias de inmediato. Tu matrona ya quedó alertada.",
+  ],
 };
 
 /**
@@ -97,9 +104,9 @@ function preguntaDelDia(dia: number): string {
 }
 
 const INVITACION: Record<NivelRiesgo, string> = {
-  bajo: "Cualquier cosa que te preocupe, aunque te parezca chica, escríbeme.",
-  medio: "Quédate conmigo: cuéntame si algo cambia o si aparece algo nuevo.",
-  alto: "Respóndeme mientras vas en camino si puedes, te sigo leyendo.",
+  bajo: "Cualquier cosa que te preocupe, escríbeme.",
+  medio: "Cuéntame si algo cambia o aparece algo nuevo.",
+  alto: "Si puedes, respóndeme en camino; te sigo leyendo.",
 };
 
 export interface SalidaParaElla {
@@ -108,20 +115,33 @@ export interface SalidaParaElla {
   hallazgos: Hallazgos;
 }
 
-/** Lo que el sistema escribe en el chat después de evaluar un mensaje. */
-export function respuestaParaElla(salida: SalidaParaElla, dia: number): string {
+/**
+ * Lo que el sistema escribe en el chat después de evaluar un mensaje. `previa` es el último mensaje
+ * del sistema: si con la primera apertura la respuesta sale idéntica, se usa la segunda, para no
+ * repetir el mismo texto exacto dos veces seguidas.
+ */
+export function respuestaParaElla(salida: SalidaParaElla, dia: number, previa?: string): string {
   const principal = salida.sospechas.find((s) => s !== "sin_hallazgos");
 
-  const preguntas: string[] = [];
-  if (principal) preguntas.push(CUANTIFICAR[principal]);
-  else preguntas.push(preguntaDelDia(dia));
+  // La cola (preguntas + invitación) es la misma con cualquiera de las dos aperturas.
+  const cola: string[] = [];
 
-  // El shock no cuelga solo de la sospecha: un sangrado aumentado sin categoría todavía también
-  // lo necesita, y es la pregunta que puede subir el caso de señal de alarma a emergencia.
-  if (principal === "hemorragia_tardia" || salida.hallazgos.sangrado_aumentado === true)
-    preguntas.push(SHOCK);
+  // En alto ella va en camino a urgencias: la cuantificación se la toma la matrona en la
+  // telellamada, no se la abruma con el cuestionario mientras se está moviendo.
+  if (salida.nivel_riesgo !== "alto") {
+    cola.push(principal ? CUANTIFICAR[principal] : preguntaDelDia(dia));
+  }
 
-  return [RECONOCIMIENTO[salida.nivel_riesgo], ...preguntas, INVITACION[salida.nivel_riesgo]].join(
-    " "
-  );
+  // El shock es la excepción que sí va en alto: un sangrado aumentado puede cambiar lo que la
+  // matrona hace primero, y ella no lo menciona sola porque no sabe que se pregunta.
+  if (principal === "hemorragia_tardia" || salida.hallazgos.sangrado_aumentado === true) {
+    cola.push(SHOCK);
+  }
+
+  cola.push(INVITACION[salida.nivel_riesgo]);
+
+  const [a, b] = APERTURA[salida.nivel_riesgo];
+  const armar = (apertura: string) => [apertura, ...cola].join(" ");
+  const mensaje = armar(a);
+  return previa && mensaje === previa ? armar(b) : mensaje;
 }

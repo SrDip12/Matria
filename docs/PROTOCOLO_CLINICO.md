@@ -309,7 +309,7 @@ ficha clínica.
 | Ánimo bajo | ando bajoneada · estoy triste todo el día · no tengo ganas de nada |
 | Alteración visual | veo lucecitas · veo borroso · veo puntitos negros |
 | Disnea | me falta el aire · me ahogo · no puedo respirar bien |
-| Sensación de desmayo | me voy a desmayar · se me va la vista · ando mareada |
+| Sensación de desmayo | siento que me voy a desmayar · se me va la vista · se me nubla todo |
 | Dolor al amamantar | me duele cuando le doy pecho · no se prende bien |
 
 Las variantes que aparecen después del primer punto medio de cada fila son formas coloquiales
