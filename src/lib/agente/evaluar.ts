@@ -13,8 +13,8 @@ import { HERRAMIENTA } from "./herramienta.ts";
 import { SECCIONES, SYSTEM } from "./prompt.ts";
 import { aplicarReglasDuras } from "./riesgo.ts";
 
-/** Cambiado a Haiku por pedido del equipo (CLAUDE.md §3 dice Sonnet 4.6: avisar en el canal). */
-const MODELO = "claude-haiku-4-5";
+/** CLAUDE.md §3. `MATRIA_MODELO` solo para comparar modelos desde probar.ts. */
+const MODELO = process.env.MATRIA_MODELO ?? "claude-sonnet-4-6";
 
 /**
  * Lo que el agente produce. Misma forma que `SalidaAgente` de src/lib/db:
@@ -230,6 +230,23 @@ export async function evaluar(
 ): Promise<SalidaAgente> {
   if (!texto.trim()) fallar(puerperaId, "texto vacío");
 
+  // El SDK reintenta errores de red, no una salida que no calza con el contrato: eso llega
+  // como respuesta 200 y muere en validar(). Pasó de verdad — el modelo dejó accion_sugerida
+  // vacía y el panel recibió un 502. Un segundo intento cuesta ~10 s; perder el mensaje
+  // delante del jurado cuesta la demo. Solo uno: si falla dos veces no es un mal día.
+  try {
+    return await evaluarUnaVez(puerperaId, texto, contexto);
+  } catch (error) {
+    console.warn(`[agente] reintento para ${puerperaId}: ${(error as Error).message}`);
+    return await evaluarUnaVez(puerperaId, texto, contexto);
+  }
+}
+
+async function evaluarUnaVez(
+  puerperaId: string,
+  texto: string,
+  contexto?: ContextoPuerpera
+): Promise<SalidaAgente> {
   const respuesta = await anthropic().messages.create({
     model: MODELO,
     max_tokens: 1500,
@@ -237,7 +254,6 @@ export async function evaluar(
     tools: [HERRAMIENTA],
     // Forzado: la salida nunca es texto parseado.
     tool_choice: { type: "tool", name: HERRAMIENTA.name },
-    // Haiku 4.5 no piensa salvo que se le pida: no va parámetro `thinking`.
     messages: [{ role: "user", content: mensajeUsuario(texto.trim(), contexto) }],
   });
 

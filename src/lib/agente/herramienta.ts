@@ -79,7 +79,7 @@ export const HERRAMIENTA = {
       accion_sugerida: {
         type: "string",
         description:
-          "Qué debería hacer la matrona. Nunca una indicación de tratamiento ni de fármaco.",
+          "Una sola frase: qué hace la matrona ahora. Nunca una indicación de tratamiento ni de fármaco.",
       },
     },
     required: [

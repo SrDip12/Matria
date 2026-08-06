@@ -136,7 +136,7 @@ estructurada y no hay que parsear texto ni limpiar bloques de markdown.
       },
       "accion_sugerida": {
         "type": "string",
-        "description": "Qué debería hacer la matrona. Nunca una indicación de tratamiento ni de fármaco."
+        "description": "Una sola frase: qué hace la matrona ahora. Nunca una indicación de tratamiento ni de fármaco."
       }
     },
     "required": ["hallazgos", "nivel_riesgo", "sospechas", "cita_protocolo", "razonamiento", "accion_sugerida"]
