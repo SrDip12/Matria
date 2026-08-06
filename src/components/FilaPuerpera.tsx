@@ -10,7 +10,6 @@ import { DIAS_PUERPERIO, type FilaPanel } from "@/lib/types";
 interface FilaPuerperaProps {
   fila: FilaPanel;
   seleccionada: boolean;
-  onSeleccionar: () => void;
   onAbrirCaso: () => void;
   onResolverAlerta: (alertaId: string) => void;
 }
@@ -21,13 +20,12 @@ interface FilaPuerperaProps {
  * Abre con el riel de riesgo de 4px y cierra con la franja de 42 días: el estado de ahora y la
  * historia completa en la misma fila, sin abrir nada.
  *
- * La tarjeta entera selecciona el caso, pero el botón de resolver la alerta vive fuera de ese
- * botón: uno dentro de otro no es HTML válido y el teclado se pierde entre los dos.
+ * La fila entera abre el caso. Los botones de la alerta viven fuera de ese botón: uno dentro de
+ * otro no es HTML válido y el teclado se pierde entre los dos.
  */
 export function FilaPuerpera({
   fila,
   seleccionada,
-  onSeleccionar,
   onAbrirCaso,
   onResolverAlerta,
 }: FilaPuerperaProps) {
@@ -53,9 +51,9 @@ export function FilaPuerpera({
       <div className="flex min-w-0 flex-1 flex-col">
         <button
           type="button"
-          onClick={onSeleccionar}
-          aria-pressed={seleccionada}
-          className="flex flex-col gap-2.5 px-3 py-3 text-left"
+          onClick={onAbrirCaso}
+          aria-label={`Abrir el caso de ${etiqueta}`}
+          className="flex cursor-pointer flex-col gap-2.5 px-3 py-3 text-left transition-colors hover:bg-[var(--color-hover)]"
         >
           <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
             <span className="subtitulo truncate">{etiqueta}</span>

@@ -14,6 +14,8 @@ import { DIAS_PUERPERIO, type FilaPanel, type NivelRiesgo } from "@/lib/types";
 
 interface PanelMatronaProps {
   filas: FilaPanel[];
+  /** El primer poll todavía no vuelve. No es lo mismo que una cohorte vacía. */
+  cargando: boolean;
   seleccionadaId: string | null;
   onSeleccionar: (puerperaId: string) => void;
   onResolverAlerta: (alertaId: string) => void;
@@ -34,6 +36,64 @@ const VISTAS: { id: Vista; etiqueta: string; Icono: typeof IconoResumen }[] = [
 
 const NIVELES: NivelRiesgo[] = ["alto", "medio", "bajo"];
 
+/** La forma del resumen mientras la cohorte no llega: tres cifras y dos tarjetas. */
+function ResumenEsqueleto() {
+  return (
+    <div className="flex flex-col gap-4" aria-hidden>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="card flex flex-col gap-2 p-4"
+            style={{ background: "var(--color-surface)" }}
+          >
+            <span className="esqueleto h-3 w-20" />
+            <span className="esqueleto h-7 w-16" />
+            <span className="esqueleto h-3 w-32" />
+          </div>
+        ))}
+      </div>
+      {[0, 1].map((i) => (
+        <div key={i} className="card flex flex-col gap-3 p-4">
+          <span className="esqueleto h-3 w-28" />
+          <span className="esqueleto h-3 w-full" />
+          <span className="esqueleto h-20 w-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * La forma que va a tener la lista, mientras la cohorte no llega. Cinco filas: las que caben en
+ * pantalla. Más sería prometer un largo que todavía no se sabe.
+ */
+function FilasEsqueleto() {
+  return (
+    <div className="flex flex-col gap-2" aria-hidden>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <article
+          key={i}
+          className="flex gap-3 rounded-[var(--radius-lg)] border p-3"
+          style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
+        >
+          <span className="esqueleto w-1 self-stretch" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="esqueleto h-4 w-32" />
+              <span className="esqueleto h-3 w-14" />
+              <span className="esqueleto ml-auto h-5 w-16 rounded-[var(--radius-pill)]" />
+            </div>
+            <span className="esqueleto h-3 w-full" />
+            <span className="esqueleto h-3" style={{ width: `${72 - i * 6}%` }} />
+            <span className="esqueleto h-3 w-full" />
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 /**
  * Panel de triage. Dos maneras de mirar la misma cohorte y una tercera pantalla que no es una
  * pestaña sino un destino:
@@ -50,6 +110,7 @@ const NIVELES: NivelRiesgo[] = ["alto", "medio", "bajo"];
  */
 export function PanelMatrona({
   filas,
+  cargando,
   seleccionadaId,
   onSeleccionar,
   onResolverAlerta,
@@ -114,6 +175,12 @@ export function PanelMatrona({
       >
         <div className="flex min-w-0 flex-col gap-1.5">
           <h1 className="etiqueta">Panel de la matrona</h1>
+          {cargando ? (
+            <p className="flex items-center gap-2 text-[15px] leading-snug" aria-live="polite">
+              <span className="esqueleto h-4 w-56" aria-hidden />
+              <span className="sr-only">Cargando la cohorte</span>
+            </p>
+          ) : (
           <p className="tabular text-[15px] leading-snug" aria-live="polite">
             <span className="font-medium" style={{ color: "var(--color-titulo)" }}>
               {m.total}
@@ -140,6 +207,7 @@ export function PanelMatrona({
               </>
             )}
           </p>
+          )}
         </div>
 
         <nav className="flex gap-1" role="tablist" aria-label="Vistas del panel">
@@ -156,7 +224,7 @@ export function PanelMatrona({
             >
               <Icono size={14} />
               {etiqueta}
-              {id === "pacientes" && <span className="chip-cifra">{m.total}</span>}
+              {id === "pacientes" && !cargando && <span className="chip-cifra">{m.total}</span>}
             </button>
           ))}
         </nav>
@@ -165,7 +233,11 @@ export function PanelMatrona({
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         {vista === "resumen" && (
           <div role="tabpanel" id="panel-resumen" aria-labelledby="tab-resumen">
-            <DashboardMatrona filas={filas} onAbrirCaso={abrirCaso} />
+            {cargando && filas.length === 0 ? (
+              <ResumenEsqueleto />
+            ) : (
+              <DashboardMatrona filas={filas} onAbrirCaso={abrirCaso} />
+            )}
           </div>
         )}
 
@@ -186,7 +258,7 @@ export function PanelMatrona({
                   className="chip"
                 >
                   {ETIQUETA_ACCION[nivel]}
-                  <span className="chip-cifra">{m.porNivel[nivel]}</span>
+                  {!cargando && <span className="chip-cifra">{m.porNivel[nivel]}</span>}
                 </button>
               ))}
               <button
@@ -196,7 +268,7 @@ export function PanelMatrona({
                 className="chip"
               >
                 Con alerta pendiente
-                <span className="chip-cifra">{m.alertasPendientes}</span>
+                {!cargando && <span className="chip-cifra">{m.alertasPendientes}</span>}
               </button>
 
               <label className="ml-auto flex items-center gap-2">
@@ -224,17 +296,19 @@ export function PanelMatrona({
             )}
 
             <div className="flex flex-col gap-2">
+              {cargando && filas.length === 0 && <FilasEsqueleto />}
+
               {visibles.map((fila) => (
                 <FilaPuerpera
                   key={fila.puerpera.id}
                   fila={fila}
                   seleccionada={fila.puerpera.id === seleccionadaId}
-                  onSeleccionar={() => onSeleccionar(fila.puerpera.id)}
                   onAbrirCaso={() => abrirCaso(fila.puerpera.id)}
                   onResolverAlerta={onResolverAlerta}
                 />
               ))}
-              {visibles.length === 0 && (
+
+              {!cargando && visibles.length === 0 && (
                 <p className="py-10 text-center text-sm tenue">
                   {filas.length === 0
                     ? "Todavía no hay puérperas en seguimiento."

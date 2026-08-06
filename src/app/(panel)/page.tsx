@@ -19,7 +19,7 @@ import type { Puerpera } from "@/lib/types";
  * del caso abierto, que es el único momento en que hay una conversación concreta que mirar.
  */
 function Dashboard() {
-  const { filas, refrescar, resolverAlerta } = usePanel();
+  const { filas, cargando, refrescar, resolverAlerta } = usePanel();
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,6 +33,7 @@ function Dashboard() {
     <div className="flex min-h-0 flex-1">
       <PanelMatrona
         filas={filas}
+        cargando={cargando}
         seleccionadaId={seleccionadaId}
         onSeleccionar={setSeleccionadaId}
         onResolverAlerta={resolverAlerta}

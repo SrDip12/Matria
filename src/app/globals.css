@@ -62,16 +62,18 @@
   --riesgo-bajo-fondo: #edf7f1;
   --riesgo-bajo-borde: #c7e3d4;
 
-  /* Cabecera de la tarjeta de alerta. El tono del riesgo desaturado hacia la tinta cálida del
-     sistema: la banda deja de gritar sin dejar de ser del color de su nivel. El texto blanco
-     encima se mantiene sobre 5:1, que es lo que hace que esto sea legible y no solo más suave. */
-  --riesgo-alto-cabecera: #b5202c;
-  --riesgo-medio-cabecera: #8f5b12;
-  --riesgo-bajo-cabecera: #1f6b48;
+  /* Cabecera de la tarjeta de alerta. Rosa vinoso, de la misma familia que el rojo 900 de la
+     barra superior: la banda deja de gritar y la pantalla se lee como una sola pieza. El texto
+     blanco encima se mantiene sobre 5:1, que es lo que hace que esto sea legible y no solo
+     más suave. El alto va más oscuro que el medio a propósito: si el ámbar se viera más denso
+     que el rosa, la jerarquía de gravedad se invertiría de un vistazo. */
+  --riesgo-alto-cabecera: #a63d58;
+  --riesgo-medio-cabecera: #9a6320;
+  --riesgo-bajo-cabecera: #2b7554;
 
-  /* La burbuja de la puérpera. Mismo criterio: el rojo pleno en bloques grandes de texto cansa
-     y compite con las alertas, que son lo único que debería gritar en esta pantalla. */
-  --burbuja-suya: #b5202c;
+  /* La burbuja de la puérpera. Mismo rosa: un hilo largo de burbujas en rojo pleno cansa y
+     compite con las alertas, que son lo único que debería gritar en esta pantalla. */
+  --burbuja-suya: #a63d58;
 }
 
 @theme inline {
@@ -436,6 +438,31 @@ a:hover {
   overflow: hidden;
 }
 
+/* --- Carga ---------------------------------------------------------------- */
+
+/**
+ * Esqueleto. Mientras la cohorte no llega, la pantalla muestra la forma que va a tener en vez
+ * de un cero: "0 en seguimiento" no es un estado de carga, es una afirmación falsa, y en un
+ * panel de triage una afirmación falsa es lo peor que se puede mostrar.
+ *
+ * Pulso de opacidad y no un barrido con gradiente: el sistema no tiene gradientes, y esto
+ * tampoco es un spinner —que en una herramienta clínica se lee como caída.
+ */
+@keyframes esqueleto-late {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.esqueleto {
+  background: var(--color-linea);
+  border-radius: var(--radius-sm);
+  animation: esqueleto-late 1400ms ease-in-out infinite;
+}
+
 /* --- Cambio de pantalla -------------------------------------------------- */
 
 /* Una vista nueva entra con seis píxeles de subida. Sirve para que al abrir un caso o cambiar
@@ -509,6 +536,10 @@ a:hover {
   .msj,
   .vista-entra {
     animation: none;
+  }
+  .esqueleto {
+    animation: none;
+    opacity: 0.8;
   }
   .escribiendo b {
     animation: none;
