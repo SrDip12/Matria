@@ -168,7 +168,9 @@ export function PanelMatrona({
   }
 
   return (
-    <section className="vista-entra flex h-full flex-col overflow-hidden">
+    /* `flex-1 min-w-0`: es hijo de un flex y sin eso se encogía al ancho de su contenido — la
+       lista terminaba a media pantalla y el resto quedaba en blanco a la derecha. */
+    <section className="vista-entra flex h-full min-w-0 flex-1 flex-col overflow-hidden">
       <header
         className="flex shrink-0 flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b px-5 py-4"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
@@ -345,7 +347,7 @@ function Caso({
   const [etiqueta, codigo] = partirEtiqueta(puerpera.nombre);
 
   return (
-    <section className="vista-entra flex h-full flex-col overflow-hidden">
+    <section className="vista-entra flex h-full min-w-0 flex-1 flex-col overflow-hidden">
       <header
         className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-3"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
@@ -375,9 +377,11 @@ function Caso({
       </header>
 
       <div className="flex min-h-0 flex-1">
+        {/* Fondo plano y sin el motivo: el canal es lo que ella escribió, y una textura detrás de
+            sus palabras las convierte en decoración. Es la única zona que se salva del patrón. */}
         <div
           className="min-h-0 w-[35%] border-r"
-          style={{ borderColor: "var(--color-border)" }}
+          style={{ borderColor: "var(--color-border)", background: "var(--color-bg)" }}
         >
           {conversacion}
         </div>

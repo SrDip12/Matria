@@ -459,10 +459,13 @@ a:hover {
  *
  * El motivo es el partograma: la recta de la línea de alerta y, rezagada bajo ella, la curva de
  * dilatación. Es el dibujo que la matrona traza a mano en el parto, así que la textura dice de
- * qué es esta pantalla sin ilustrar nada. Va en rosa 200 al 14 % sobre `--color-oscuro` y queda
- * al borde de lo invisible a propósito — tiene que leerse como textura del fondo, nunca como
- * contenido. Es la única excepción a "sin patrones de fondo" del sistema y vive solo acá: en el
- * panel clínico no entra.
+ * qué es el producto sin ilustrar nada. Va al borde de lo invisible a propósito — tiene que
+ * leerse como textura del fondo, nunca como contenido.
+ *
+ * Va en el `<main>`, o sea detrás de todo el producto. La excepción es al revés de como nació:
+ * la única zona que se queda en color plano es el canal de la puérpera, para que sus palabras no
+ * tengan una textura detrás. Todo lo que se apoya en una superficie —tarjetas, filas, cabeceras,
+ * el teléfono— es opaco y tapa el motivo por sí solo.
  *
  * Las dos trazas van de esquina a esquina de la tesela, que es lo que las hace continuar de una
  * a la siguiente sin corte visible.

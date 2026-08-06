@@ -69,7 +69,7 @@ function Dashboard() {
  */
 function Marco({ aside, children }: { aside?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="ondas flex min-h-0 flex-1 justify-center gap-10 overflow-hidden px-4 py-4">
+    <div className="flex min-h-0 flex-1 justify-center gap-10 overflow-hidden px-4 py-4">
       {aside}
       <div className="telefono flex min-h-0 w-full max-w-2xl flex-1 flex-col">{children}</div>
     </div>
@@ -231,7 +231,7 @@ export default function PanelPage() {
   // La barra superior está siempre, también en la puerta: es el chrome del producto, no de una
   // vista. Sin demo elegida no nombra ninguna ni ofrece cambiarla.
   return (
-    <main className="flex h-screen flex-col">
+    <main className="ondas flex h-screen flex-col">
       <TabBar demo={demo} onVolver={() => setDemo(null)} />
       {demo === null && <Inicio onElegir={setDemo} />}
       {demo === "matrona" && <Dashboard />}
