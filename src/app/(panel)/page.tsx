@@ -59,6 +59,21 @@ function Dashboard() {
  * El lado de la matrona (Dashboard) mantiene la pantalla dividida, que es donde el jurado tiene
  * que ver el mensaje entrar y la alerta salir sin cambiar de contexto.
  */
+/**
+ * El teléfono al centro y las ondas a los lados.
+ *
+ * Ella abre esto con una guagua en brazos y desde su celular, así que en la pantalla del demo se
+ * muestra como lo que es: un teléfono. Lo que sobra a los lados deja de ser vacío y pasa a decir
+ * "esto no es el panel", que es justo lo que hay que entender al cambiar de vista.
+ */
+function Marco({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="ondas flex min-h-0 flex-1 justify-center overflow-hidden px-4 py-4">
+      <div className="telefono flex min-h-0 w-full max-w-2xl flex-1 flex-col">{children}</div>
+    </div>
+  );
+}
+
 const PESTANAS = [
   { id: "chat", etiqueta: "Chat", Icono: IconoChat },
   { id: "avisos", etiqueta: "Mis avisos", Icono: IconoAviso },
@@ -74,7 +89,12 @@ function DemoPaciente({ onVolverInicio }: { onVolverInicio: () => void }) {
   const [pestana, setPestana] = useState<Pestana>("chat");
   const { mensajes, enviando, error, enviar } = useConversacion(puerpera?.id ?? null, refrescar);
 
-  if (!puerpera) return <FichaIngreso onListo={setPuerpera} onVolverInicio={onVolverInicio} />;
+  if (!puerpera)
+    return (
+      <Marco>
+        <FichaIngreso onListo={setPuerpera} onVolverInicio={onVolverInicio} />
+      </Marco>
+    );
 
   // Se relee del panel para que el día de puerperio, la ficha y los avisos sigan al día tras
   // cada poll. Mientras el primer poll no vuelve, se muestra lo que devolvió el onboarding.
@@ -83,7 +103,7 @@ function DemoPaciente({ onVolverInicio }: { onVolverInicio: () => void }) {
   const pendientes = fila?.alertas_pendientes.length ?? 0;
 
   return (
-    <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden">
+    <Marco>
       <nav
         className="flex shrink-0 flex-wrap gap-1 border-b px-4 py-3 sm:px-6"
         role="tablist"
@@ -145,7 +165,7 @@ function DemoPaciente({ onVolverInicio }: { onVolverInicio: () => void }) {
           )}
         </div>
       )}
-    </div>
+    </Marco>
   );
 }
 

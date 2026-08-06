@@ -29,7 +29,8 @@ type Respuestas = Record<string, string>;
 interface Campo {
   k: string;
   etiqueta: string;
-  tipo: "texto" | "numero" | "fecha" | "opciones";
+  /** `lista` es un desplegable nativo: para dieciséis opciones los chips no dan. */
+  tipo: "texto" | "numero" | "fecha" | "opciones" | "lista";
   placeholder?: string;
   opciones?: string[];
   multi?: boolean;
@@ -44,14 +45,24 @@ interface Paso {
   campos: Campo[];
 }
 
+/** Las dieciséis, de norte a sur. Con siete chips la mitad del país no aparecía. */
 const REGIONES = [
-  "Metropolitana",
-  "Valparaíso",
-  "Biobío",
-  "Maule",
-  "Araucanía",
+  "Arica y Parinacota",
+  "Tarapacá",
+  "Antofagasta",
+  "Atacama",
   "Coquimbo",
-  "Otra",
+  "Valparaíso",
+  "Metropolitana de Santiago",
+  "Libertador General Bernardo O’Higgins",
+  "Maule",
+  "Ñuble",
+  "Biobío",
+  "La Araucanía",
+  "Los Ríos",
+  "Los Lagos",
+  "Aysén del General Carlos Ibáñez del Campo",
+  "Magallanes y de la Antártica Chilena",
 ];
 
 const DEL_EMBARAZO = [
@@ -134,7 +145,7 @@ const PASOS: Paso[] = [
         tipo: "texto",
         placeholder: "Hospital San José",
       },
-      { k: "region", etiqueta: "Región", tipo: "opciones", opciones: REGIONES },
+      { k: "region", etiqueta: "Región", tipo: "lista", opciones: REGIONES },
       {
         k: "episiotomia",
         etiqueta: "Episiotomía",
@@ -240,7 +251,7 @@ function Nombre({
   onVolver: () => void;
 }) {
   return (
-    <div className="vista-entra mx-auto flex w-full max-w-[520px] flex-col gap-5 px-6 py-14">
+    <div className="vista-entra mx-auto flex w-full max-w-[520px] flex-col gap-5 overflow-y-auto px-6 py-14">
       <div className="flex flex-col gap-2">
         <p className="etiqueta">Empecemos</p>
         <h1 className="titulo">¿Cómo te llamas?</h1>
@@ -309,7 +320,8 @@ export function FichaIngreso({
 
   const actual = PASOS[paso];
   const campos = actual.campos.filter((c) => !c.si || c.si(r));
-  const textos = campos.filter((c) => c.tipo !== "opciones");
+  const textos = campos.filter((c) => c.tipo !== "opciones" && c.tipo !== "lista");
+  const listas = campos.filter((c) => c.tipo === "lista");
   const opciones = campos.filter((c) => c.tipo === "opciones");
   const ultimo = paso === PASOS.length - 1;
   const contestados = Object.entries(r).filter(([, v]) => v);
@@ -397,6 +409,25 @@ export function FichaIngreso({
               ))}
             </div>
           )}
+
+          {listas.map((c) => (
+            <label key={c.k} className="flex min-w-0 flex-col gap-1.5 sm:max-w-[380px]">
+              <span className="etiqueta-tenue">{c.etiqueta}</span>
+              <select
+                className="input select"
+                name={c.k}
+                value={r[c.k] ?? ""}
+                onChange={(e) => cambiar(c.k, e.target.value)}
+              >
+                <option value="">Seleccionar región</option>
+                {c.opciones!.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
 
           {opciones.map((c) => (
             <CampoOpciones key={c.k} campo={c} valor={r[c.k]} onElegir={(v) => cambiar(c.k, v)} />

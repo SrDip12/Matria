@@ -14,7 +14,10 @@
  */
 
 :root {
-  --color-bg: #f2ece9;
+  /* El ground va un paso más oscuro que la superficie de las tarjetas. Antes eran casi el mismo
+     valor y una fila del panel no se despegaba del fondo: la jerarquía de superficie de este
+     sistema se hace con el valor del fondo y sin ese escalón no existe. */
+  --color-bg: #ece4e0;
   --color-surface: #fbf8f6;
   --color-surface-alta: #ffffff;
   --color-border: #e2d8d4;
@@ -22,6 +25,8 @@
      larga no se lea como una reja. */
   --color-linea: #ede4e1;
   --color-hover: #efe7e4;
+  /* El único fondo oscuro del sistema. Solo el lado de la puérpera lo usa, detrás del teléfono. */
+  --color-oscuro: #1b1016;
 
   --color-titulo: #3a1a20;
   --color-text: #2a1418;
@@ -56,6 +61,17 @@
   --riesgo-bajo-tinta: #145c3d;
   --riesgo-bajo-fondo: #edf7f1;
   --riesgo-bajo-borde: #c7e3d4;
+
+  /* Cabecera de la tarjeta de alerta. El tono del riesgo desaturado hacia la tinta cálida del
+     sistema: la banda deja de gritar sin dejar de ser del color de su nivel. El texto blanco
+     encima se mantiene sobre 5:1, que es lo que hace que esto sea legible y no solo más suave. */
+  --riesgo-alto-cabecera: #b5202c;
+  --riesgo-medio-cabecera: #8f5b12;
+  --riesgo-bajo-cabecera: #1f6b48;
+
+  /* La burbuja de la puérpera. Mismo criterio: el rojo pleno en bloques grandes de texto cansa
+     y compite con las alertas, que son lo único que debería gritar en esta pantalla. */
+  --burbuja-suya: #b5202c;
 }
 
 @theme inline {
@@ -338,6 +354,17 @@ a:hover {
   outline-offset: 0;
 }
 
+/* Desplegable nativo. La flecha va dibujada acá para no depender de un icono ni del chevron
+   del sistema operativo, que cambia de forma en cada plataforma. */
+.select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5l5-5' stroke='%236e555a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
 /* --- Píldoras ------------------------------------------------------------ */
 
 .tag {
@@ -382,6 +409,31 @@ a:hover {
 .sin-datos {
   color: var(--color-tenue);
   font-size: 13px;
+}
+
+/* --- El lado de la puérpera ---------------------------------------------- */
+
+/**
+ * Ella abre esto en un teléfono, así que en la pantalla del demo se muestra como un teléfono:
+ * la columna va enmarcada al centro y lo que sobra a los lados es fondo oscuro.
+ *
+ * El motivo son ondas: la franja de 42 días estirada y repetida. Va al 100 % en rojo 300 sobre
+ * `--color-oscuro` y queda casi invisible a propósito — tiene que leerse como textura del fondo,
+ * nunca como contenido. Es la única excepción a "sin patrones de fondo" del sistema y vive solo
+ * acá: en el panel clínico no entra.
+ */
+.ondas {
+  background-color: var(--color-oscuro);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120' fill='none'%3E%3Cg stroke='%23ff6b82' stroke-width='1' opacity='0.10'%3E%3Cpath d='M0 30 Q30 10 60 30 T120 30'/%3E%3Cpath d='M0 60 Q30 40 60 60 T120 60'/%3E%3Cpath d='M0 90 Q30 70 60 90 T120 90'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* El marco. Radio grande y borde de 1px: sigue sin haber sombras. */
+.telefono {
+  background: var(--color-bg);
+  border: 1px solid color-mix(in srgb, var(--marca-300) 28%, transparent);
+  border-radius: 22px;
+  overflow: hidden;
 }
 
 /* --- Cambio de pantalla -------------------------------------------------- */

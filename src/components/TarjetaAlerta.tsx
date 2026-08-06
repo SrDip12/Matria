@@ -8,8 +8,9 @@ import type { NivelRiesgo } from "@/lib/types";
  * Tarjeta de alerta del design system: cabecera en el color del riesgo con la acción en
  * versalitas y el tiempo de espera, y el cuerpo sobre superficie blanca.
  *
- * La cabecera del riesgo medio usa la tinta oscura en vez del punto: el ámbar puro con texto
- * blanco encima queda bajo el contraste mínimo y esto se lee a un metro de distancia.
+ * La cabecera usa el tono `-cabecera`, que es el del nivel desaturado hacia la tinta cálida:
+ * en una cola de veinte alertas el rojo pleno se vuelve ruido y deja de señalar nada. El texto
+ * blanco encima se mantiene sobre 5:1 para que se lea a un metro de distancia.
  */
 
 interface TarjetaAlertaProps {
@@ -21,13 +22,12 @@ interface TarjetaAlertaProps {
 
 export function TarjetaAlerta({ nivel, encabezado, at, children }: TarjetaAlertaProps) {
   const tono = TONO_RIESGO[nivel];
-  const fondoCabecera = nivel === "alto" ? tono.punto : tono.texto;
 
   return (
     <div className="card-alta overflow-hidden" style={{ borderColor: tono.borde }}>
       <div
         className="flex items-center justify-between gap-3 px-3 py-1.5"
-        style={{ background: fondoCabecera }}
+        style={{ background: `var(--riesgo-${nivel}-cabecera)` }}
       >
         <span
           className="etiqueta truncate"

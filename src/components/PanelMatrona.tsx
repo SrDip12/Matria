@@ -276,7 +276,8 @@ function Caso({
         className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-3"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
-        <button type="button" onClick={onVolver} className="btn btn-ghost">
+        {/* Secundario y no fantasma: es la única salida de esta pantalla y tiene que verse. */}
+        <button type="button" onClick={onVolver} className="btn btn-secondary">
           <IconoVolver size={15} />
           Volver a la lista
         </button>
@@ -355,7 +356,12 @@ function Caso({
           )}
 
           <section className="card flex flex-col gap-3 p-4">
-            <h3 className="etiqueta">Franja del puerperio</h3>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h3 className="etiqueta">Franja del puerperio</h3>
+              <span className="tabular text-xs suave">
+                día {puerpera.dia_puerperio} de {DIAS_PUERPERIO}
+              </span>
+            </div>
             <Franja42 franja={franja} diaActual={puerpera.dia_puerperio} />
           </section>
 

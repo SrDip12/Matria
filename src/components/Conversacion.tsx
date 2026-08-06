@@ -9,8 +9,9 @@ import { DIAS_PUERPERIO, type Mensaje, type NivelRiesgo, type Puerpera } from "@
  * Burbuja del hilo. La usa esta pantalla y también la ficha de ingreso, que es una conversación:
  * si la ficha se ve distinta al chat, la puérpera cree que son dos productos.
  *
- * Ella en rojo 600 y el acompañamiento sobre superficie blanca con borde: es la regla del
- * design system y sirve para que, de un vistazo, se vea quién dijo qué.
+ * Ella en el rojo apagado del sistema y el acompañamiento sobre superficie blanca con borde:
+ * de un vistazo se ve quién dijo qué, sin que un hilo largo de burbujas rojas plenas compita
+ * con las alertas, que son lo único que debería gritar en esta pantalla.
  */
 export function Burbuja({
   de,
@@ -32,7 +33,7 @@ export function Burbuja({
       }
       style={
         suya
-          ? { background: "var(--marca-600)", color: "#ffffff" }
+          ? { background: "var(--burbuja-suya)", color: "#ffffff" }
           : { background: "var(--color-surface-alta)", borderColor: "var(--color-border)" }
       }
     >

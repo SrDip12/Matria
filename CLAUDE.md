@@ -230,6 +230,13 @@ Todo respeta `prefers-reduced-motion`.
 
 Sin gradientes, sin sombras difusas, sin blur, sin emojis, sin ilustraciones, sin fotografía.
 
+**Fondos: color plano, con una excepción acotada.** El lado de la puérpera se muestra como lo que
+es —un teléfono—: la columna va enmarcada al centro (`.telefono`, borde 1px, radio 22) y lo que
+sobra a los lados es `#1B1016` con un motivo de ondas al 10 % en rojo 300 (`.ondas`). Las ondas son
+la franja de 42 días estirada y repetida, y están al borde de lo invisible a propósito: tienen que
+leerse como textura del fondo, nunca como contenido. **En el panel clínico no entra ningún
+patrón** — ahí manda el color plano y punto.
+
 **Iconos.** `src/components/Iconos.tsx`, dibujados para Matria: trazo de 1.5, esquinas redondas,
 `currentColor` y sin relleno. Heredan la tinta de quien los contiene, así que **nunca introducen
 color** y la regla de que el color es del riesgo queda intacta. Van en navegación, cabeceras de
