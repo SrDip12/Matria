@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es-CL"><head><meta charset="utf-8"><title>Matria · Demo con vista de puérpera y de matrona</title>
+<link rel="stylesheet" href="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/tokens/colors.css">
+<link rel="stylesheet" href="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/tokens/typography.css">
+<link rel="stylesheet" href="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/tokens/superficies.css">
+<link rel="stylesheet" href="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/tokens/componentes.css">
+<link rel="stylesheet" href="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="_ds/matria-design-system-d0599462-2863-46fd-ad35-5c6538c672d3/_ds_bundle.js"></script>
+<script src="app/cohorte.js"></script>
+<style>*,*::before,*::after{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text);font-size:14px;line-height:1.6}#root{height:100%}button{font-family:inherit}a{color:var(--marca-600)}a:hover{color:var(--marca-700)}
+@keyframes msj-entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.msj{animation:msj-entra 180ms ease}
+@keyframes latido{0%,100%{opacity:.28}50%{opacity:1}}
+.escribiendo b{display:inline-block;width:4px;height:4px;border-radius:999px;background:currentColor;animation:latido 1100ms ease-in-out infinite}
+.escribiendo b:nth-child(2){animation-delay:160ms}.escribiendo b:nth-child(3){animation-delay:320ms}
+@media (prefers-reduced-motion: reduce){.msj{animation:none}.escribiendo b{animation:none;opacity:.5}}</style></head>
+<body><div id="root"></div>
+<script type="text/babel" src="app/Chrome.jsx"></script>
+<script type="text/babel" src="app/Hilo.jsx"></script>
+<script type="text/babel" src="app/Bienvenida.jsx"></script>
+<script type="text/babel" src="app/FichaIngreso.jsx"></script>
+<script type="text/babel" src="app/Avisos.jsx"></script>
+<script type="text/babel" src="app/Evolucion.jsx"></script>
+<script type="text/babel" src="app/MiFicha.jsx"></script>
+<script type="text/babel" src="app/Puerpera.jsx"></script>
+<script type="text/babel" src="app/Resumen.jsx"></script>
+<script type="text/babel" src="app/FichaCaso.jsx"></script>
+<script type="text/babel" src="app/Matrona.jsx"></script>
+<script type="text/babel" src="app/Demo.jsx"></script>
+</body></html>

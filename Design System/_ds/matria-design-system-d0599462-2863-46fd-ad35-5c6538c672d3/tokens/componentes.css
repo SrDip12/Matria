@@ -1,0 +1,151 @@
+/* Clases de componente del producto (src/app/globals.css). Los componentes React del sistema
+   consumen estas mismas clases: si algo se ve distinto acá y en el panel, manda el panel. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  border-radius: var(--radius-md);
+  padding: 9px 16px;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--marca-600);
+  border: 1px solid var(--marca-600);
+  color: #ffffff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--marca-700);
+  border-color: var(--marca-700);
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--marca-200);
+  color: var(--marca-600);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--marca-50);
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-suave);
+  padding: 9px 12px;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+/* Chip de filtro y pestaña. El estado activo lo lleva el atributo ARIA, no una clase paralela. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-text-suave);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 11px;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.chip:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.chip[aria-pressed="true"],
+.chip[aria-selected="true"] {
+  background: var(--marca-600);
+  border-color: var(--marca-600);
+  color: #ffffff;
+}
+.chip[aria-pressed="true"]:hover,
+.chip[aria-selected="true"]:hover {
+  background: var(--marca-700);
+  border-color: var(--marca-700);
+  color: #ffffff;
+}
+.chip-cifra {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--color-tenue);
+}
+.chip[aria-pressed="true"] .chip-cifra,
+.chip[aria-selected="true"] .chip-cifra {
+  color: color-mix(in srgb, #ffffff 75%, transparent);
+}
+
+.input {
+  width: 100%;
+  min-height: 38px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text);
+  background: var(--color-surface-alta);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 120ms ease;
+}
+.input::placeholder {
+  color: var(--color-tenue);
+}
+.input:hover {
+  border-color: var(--marca-200);
+}
+.input:focus-visible {
+  border-color: var(--marca-500);
+  outline-offset: 0;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  color: var(--color-text-suave);
+  background: var(--color-hover);
+  border: 1px solid var(--color-border);
+}
+.tag-alto {
+  color: var(--riesgo-alto-tinta);
+  background: var(--riesgo-alto-fondo);
+  border-color: var(--riesgo-alto-borde);
+}
+.tag-medio {
+  color: var(--riesgo-medio-tinta);
+  background: var(--riesgo-medio-fondo);
+  border-color: var(--riesgo-medio-borde);
+}
+.tag-bajo {
+  color: var(--riesgo-bajo-tinta);
+  background: var(--riesgo-bajo-fondo);
+  border-color: var(--riesgo-bajo-borde);
+}

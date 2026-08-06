@@ -1,0 +1,25 @@
+/* Espaciado en múltiplos de 4. Radios: 8 px en superficies, 999 px en etiquetas. */
+:root {
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 20px;
+  --esp-6: 24px;
+  --esp-8: 32px;
+  --esp-12: 48px;
+  --esp-14: 56px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* Burbujas del hilo: la esquina del hablante se cierra a 4 px. */
+  --radius-burbuja-suya: 14px 14px 4px 14px;
+  --radius-burbuja-agente: 14px 14px 14px 4px;
+
+  --borde: 1px;
+  --riel: 4px;
+  --transicion: 120ms ease; /* @kind other */
+}

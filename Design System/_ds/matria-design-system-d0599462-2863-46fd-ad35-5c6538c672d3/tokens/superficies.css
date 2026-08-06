@@ -1,0 +1,29 @@
+/* Superficies. Sin sombras, sin gradientes: bordes de 1px y radio 10 px. */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.card-alta {
+  background: var(--color-surface-alta);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+/* Riel de riesgo: la barra de 4 px que abre cada fila del panel priorizado. */
+.riel {
+  width: 4px;
+  border-radius: 2px;
+  flex: none;
+}
+:focus-visible {
+  outline: 2px solid var(--marca-500);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

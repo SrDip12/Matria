@@ -1,0 +1,108 @@
+/* Escala tipográfica. Jerarquía por tamaño y aire, no por negrita. Cifras en tabular. */
+:root {
+  --texto-display: 34px;
+  --texto-titulo: 24px;
+  --texto-cifra: 30px;
+  --texto-subtitulo: 17px;
+  --texto-cuerpo: 14px;
+  --texto-cuerpo-panel: 13.5px;
+  --texto-menor: 13px;
+  --texto-chip: 12.5px;
+  --texto-etiqueta: 11px;
+
+  --peso-regular: 400; /* @kind font */
+  --peso-medio: 500; /* @kind font */
+  --peso-fuerte: 600; /* @kind font */
+
+  --alto-apretado: 1.1; /* @kind font */
+  --alto-titulo: 1.2; /* @kind font */
+  --alto-cuerpo: 1.6; /* @kind font */
+
+  --track-display: -0.015em;
+  --track-titulo: -0.01em;
+  --track-etiqueta: 0.18em;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--marca-600);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--marca-500);
+}
+
+.display {
+  font-size: var(--texto-display);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-titulo);
+  text-wrap: balance;
+}
+.titulo {
+  font-size: var(--texto-titulo);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-titulo);
+  text-wrap: balance;
+}
+.subtitulo {
+  font-size: var(--texto-subtitulo);
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--color-titulo);
+  text-wrap: balance;
+}
+.etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--color-text-suave);
+}
+.etiqueta-tenue {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--color-tenue);
+}
+.cifra {
+  font-size: var(--texto-cifra);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-titulo);
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.tenue {
+  color: var(--color-tenue);
+}
+.suave {
+  color: var(--color-text-suave);
+}
+.sin-datos {
+  color: var(--color-tenue);
+  font-size: 13px;
+}

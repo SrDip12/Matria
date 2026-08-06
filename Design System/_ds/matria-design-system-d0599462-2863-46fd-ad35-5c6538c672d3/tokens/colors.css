@@ -1,0 +1,55 @@
+/* Color de Matria. Valores exactos de src/app/globals.css y src/lib/riesgo.ts del producto.
+   Regla de oro: el rojo es la marca, no la alarma. Si un elemento no comunica riesgo, es tinta
+   o es gris. */
+:root {
+  /* Marca — rojo clínico */
+  --marca-900: #5c0a18;
+  --marca-700: #a50b20;
+  --marca-600: #c1121f;
+  --marca-500: #e01e37;
+  --marca-300: #ff6b82;
+  --marca-200: #e8b3ba;
+  --marca-100: #ffd9df;
+  --marca-50: #fdecee;
+
+  /* Neutrales cálidos */
+  --color-bg: #f2ece9;
+  --color-surface: #fbf8f6;
+  --color-surface-alta: #ffffff;
+  --color-border: #e2d8d4;
+  --color-linea: #ede4e1;
+  --color-hover: #efe7e4;
+  --color-oscuro: #1b1016;
+
+  /* Tinta */
+  --color-titulo: #3a1a20;
+  --color-text: #2a1418;
+  --color-text-suave: #6e555a;
+  --color-tenue: #9a7f84;
+
+  /* Escala de riesgo — verde · ámbar · carmesí */
+  --riesgo-alto: #c1121f;
+  --riesgo-alto-tinta: #8a0a17;
+  --riesgo-alto-fondo: #fdecee;
+  --riesgo-alto-borde: #f5c2c9;
+  --riesgo-medio: #c97a05;
+  --riesgo-medio-tinta: #8a5403;
+  --riesgo-medio-fondo: #fdf4e3;
+  --riesgo-medio-borde: #f0dcb4;
+  --riesgo-bajo: #1f8a5b;
+  --riesgo-bajo-tinta: #145c3d;
+  --riesgo-bajo-fondo: #edf7f1;
+  --riesgo-bajo-borde: #c7e3d4;
+
+  /* Alias semánticos */
+  --text-body: var(--color-text);
+  --text-muted: var(--color-text-suave);
+  --text-faint: var(--color-tenue);
+  --text-heading: var(--color-titulo);
+  --surface-page: var(--color-bg);
+  --surface-card: var(--color-surface);
+  --surface-raised: var(--color-surface-alta);
+  --accent: var(--marca-600);
+  --accent-hover: var(--marca-700);
+  --accent-quiet: var(--marca-50);
+}

@@ -1,0 +1,7 @@
+/* Matria usa una sola familia: Inter, servida desde Google Fonts (igual que el producto,
+   src/app/globals.css). No hay archivos de fuente propios en el repo de origen. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
