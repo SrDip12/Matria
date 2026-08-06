@@ -31,8 +31,10 @@
   --color-titulo: #3a1a20;
   --color-text: #2a1418;
   --color-text-suave: #6e555a;
-  /* Tinta de las etiquetas en versalitas y de los metadatos. Un escalón bajo el secundario. */
-  --color-tenue: #9a7f84;
+  /* Tinta de las etiquetas en versalitas y de los metadatos. Un escalón bajo el secundario.
+     Era #9a7f84 y quedaba en 3.46:1 sobre la superficie: bajo el mínimo de WCAG AA para texto
+     pequeño, y casi todo lo que usa esta tinta es de 11 y 12 px. Ahora da 5.1:1. */
+  --color-tenue: #7d6469;
 
   --marca-900: #5c0a18;
   --marca-700: #a50b20;
@@ -67,7 +69,7 @@
      blanco encima se mantiene sobre 5:1, que es lo que hace que esto sea legible y no solo
      más suave. El alto va más oscuro que el medio a propósito: si el ámbar se viera más denso
      que el rosa, la jerarquía de gravedad se invertiría de un vistazo. */
-  --riesgo-alto-cabecera: #c24d68;
+  --riesgo-alto-cabecera: #c8446a;
   --riesgo-medio-cabecera: #a06726;
   --riesgo-bajo-cabecera: #2d7d5a;
 
@@ -83,13 +85,13 @@
    * `--accion-tinta` es la versión para texto sobre superficie clara (botón secundario), donde
    * el rosa de fondo no da el contraste que sí da sobre blanco.
    */
-  --accion: #c24d68;
-  --accion-fuerte: #a83f57;
+  --accion: #c8446a;
+  --accion-fuerte: #ab375a;
   --accion-tinta: #9c3a51;
 
   /* La burbuja de la puérpera. Mismo rosa: un hilo largo de burbujas en rojo pleno cansa y
      compite con las alertas, que son lo único que debería gritar en esta pantalla. */
-  --burbuja-suya: #c24d68;
+  --burbuja-suya: #c8446a;
 }
 
 @theme inline {
@@ -242,8 +244,10 @@ a:hover {
   padding: 9px 16px;
   transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
+/* 0.45 dejaba el primario en un rosa lavado que no se leía como botón. A 0.55 sigue diciendo
+   "todavía no" sin desaparecer. */
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -433,7 +437,10 @@ a:hover {
 
 /**
  * Ella abre esto en un teléfono, así que en la pantalla del demo se muestra como un teléfono:
- * la columna va enmarcada al centro y lo que sobra a los lados es fondo oscuro.
+ * la columna va enmarcada al centro y lo que sobra a los lados lleva el motivo.
+ *
+ * El fondo es claro y no oscuro: esta pantalla acompaña a alguien que acaba de parir y lo que
+ * tiene que transmitir es calma, no gravedad. El oscuro pesaba y competía con la conversación.
  *
  * El motivo es el partograma: la recta de la línea de alerta y, rezagada bajo ella, la curva de
  * dilatación. Es el dibujo que la matrona traza a mano en el parto, así que la textura dice de
@@ -446,15 +453,16 @@ a:hover {
  * a la siguiente sin corte visible.
  */
 .ondas {
-  background-color: var(--color-oscuro);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90' fill='none'%3E%3Cg stroke='%23e8b3ba' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M0 90 L90 0' opacity='0.09'/%3E%3Cpath d='M0 90 C26 78 40 66 55 50 S76 22 90 0' opacity='0.14'/%3E%3C/g%3E%3C/svg%3E");
+  background-color: #e6dbd6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90' fill='none'%3E%3Cg stroke='%23c8446a' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M0 90 L90 0' opacity='0.07'/%3E%3Cpath d='M0 90 C26 78 40 66 55 50 S76 22 90 0' opacity='0.11'/%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
-/* El marco. Radio grande y borde de 1px: sigue sin haber sombras. */
+/* El marco. Radio grande y borde de 1px: sigue sin haber sombras. La superficie casi blanca es
+   lo que despega el teléfono del crema de los lados, ahora que ya no hay contraste de valor. */
 .telefono {
-  background: var(--color-bg);
-  border: 1px solid color-mix(in srgb, var(--marca-300) 28%, transparent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 22px;
   overflow: hidden;
 }
