@@ -81,7 +81,9 @@ Una sola pantalla dividida:
 - **Izquierda:** conversación simulada de la puérpera, con aspecto de mensajería. Se puede
   escribir como si fuera ella y hay mensajes precargados para disparar escenarios.
 - **Derecha:** panel de la matrona. Lista de puérperas ordenada por riesgo, con las alertas
-  actualizándose en vivo cuando entra un mensaje.
+  actualizándose en vivo cuando entra un mensaje. Tiene dos pestañas —resumen de la cohorte y
+  mis pacientes, que es la que abre por defecto— y el caso abierto, que no es pestaña sino un
+  destino con "volver a la lista". La conversación de la izquierda queda fija en las tres.
 
 El jurado tiene que ver, en la misma pantalla y sin cambiar de contexto: mensaje entra →
 agente lo interpreta → alerta aparece priorizada. Esa es toda la demo. Si algo no sirve a
@@ -153,34 +155,75 @@ lo que separa este proyecto de un chatbot y es lo que el jurado del MINSAL va a 
 
 Nunca hardcodear la API key. Va en `.env.local`, que está en `.gitignore`.
 
-## 10. Sistema visual del panel
+## 10. Sistema visual
 
-Es una herramienta de triage que una matrona abre a las 8 de la mañana. Densa, legible,
-tranquila. Todo el color está reservado para el estado de riesgo: si algo no comunica
-riesgo, es gris.
+Dos superficies con el mismo sistema: el **panel de la matrona**, una herramienta de triage
+que ella abre a las 8 de la mañana —densa, legible, tranquila—, y el **seguimiento de la
+puérpera**, una columna centrada de 672 px donde se hace una cosa a la vez.
+
+La fuente de verdad es `Design System/_ds/matria-design-system-*/`: `readme.md` explica el
+sistema y `tokens/*.css` trae los valores. `src/app/globals.css` es ese mismo sistema llevado
+a las clases del producto. Si el panel y el design system difieren, manda el design system.
+
+**Color. El rojo es la marca, no la alarma.** Si un elemento no comunica riesgo, es tinta o es
+gris, y el riesgo nunca se comunica solo por color: siempre lleva su etiqueta de texto.
 
 ```
-Fondo          #F5F6F4   ground claro, levemente frío
-Tinta          #1A1F1D   texto principal
-Tinta suave    #6B7370   secundario, etiquetas
-Estructura     #2C4A4A   chrome, encabezados, bordes marcados
-Riesgo alto    #B3261E
-Riesgo medio   #B26B00
-Riesgo bajo    #4A7C59
+Marca 900      #5C0A18   barra superior
+Marca 600      #C1121F   acciones
+Marca 500      #E01E37   base de marca, foco
+Marca 200 / 50 #E8B3BA / #FDECEE   contornos y fondos suaves
+
+Fondo          #F2ECE9   neutral cálido, nunca gris frío
+Superficie     #FBF8F6   tarjetas y filas
+Superficie alta #FFFFFF  lo que flota sobre una lista
+Borde          #E2D8D4   1px
+Línea          #EDE4E1   divisor interno de listas
+
+Título         #3A1A20
+Texto          #2A1418
+Texto suave    #6E555A   secundario
+Tenue          #9A7F84   versalitas y metadatos
+
+Riesgo alto    #C1121F   escalar ahora
+Riesgo medio   #C97A05   revisar hoy
+Riesgo bajo    #1F8A5B   seguimiento normal
 ```
 
-Tipografía: **Newsreader** para títulos y cifras destacadas, **IBM Plex Sans** para interfaz
-y cuerpo, **IBM Plex Mono** para datos tabulares, días y horas. Números siempre con
-`font-variant-numeric: tabular-nums`.
+Cada nivel de riesgo tiene además su trío tinta/fondo/borde para las píldoras. Los valores
+exactos viven en `tokens/colors.css` y su espejo de TypeScript es `TONO_RIESGO`
+(`src/lib/riesgo.ts`), que manda de ese lado.
 
-**Elemento firma — la franja de 42 días.** Cada puérpera en el panel lleva una franja
-horizontal de 42 celdas: la posición actual del puerperio, y marcada en color cada celda
-donde se disparó una alerta. De un vistazo la matrona ve dónde está cada mujer en la ventana
-de riesgo y dónde se le complicó. Es el único elemento con licencia para ser llamativo; todo
-lo demás se mantiene sobrio. No lo reemplaces por tarjetas con íconos grandes.
+**Tipografía: una sola familia, Inter**, servida desde Google Fonts. La jerarquía se hace por
+tamaño y aire, no por negrita: display 34/500, título 24/500, subtítulo 17/500, cuerpo 14/400,
+panel 13.5/400, etiqueta 11/600 con tracking 0.18em en versalitas. La cifra clínica va a
+30/500 y **todo lo numérico lleva `font-variant-numeric: tabular-nums`** — días, horas,
+temperaturas, porcentajes, códigos de caso.
 
-Sin gradientes, sin sombras difusas, sin emojis, sin ilustraciones. Bordes de 1px, radio
-pequeño y consistente.
+**Espaciado, bordes y superficies.** Múltiplos de 4. Bordes de 1px. Radios: 4 sm, 8 md
+(botones, chips, campos), 10 lg (tarjetas y filas), 999 en píldoras. **No hay sistema de
+sombras: ninguna sombra, ni interior ni exterior.** La jerarquía de superficie se hace con el
+valor del fondo: fondo → superficie → superficie alta.
+
+**Elemento firma — la franja de 42 días.** Cada puérpera lleva una franja horizontal de 42
+celdas con tres estados que no son intercambiables: celda en color (hubo contacto y esa fue la
+señal más grave del día), celda gris línea (el día pasó y ella no escribió: una ausencia, no un
+"todo bien"), celda al 55% (el día aún no llega). El día actual sube de 12 a 16 px y lleva
+contorno rojo 500. El corte de semana es un espacio de 6 px cada 7 celdas, no una línea. Es el
+único elemento con licencia para ser llamativo; todo lo demás se mantiene sobrio. No se anima,
+no lleva gradiente y no se reemplaza por tarjetas con íconos grandes.
+
+**Animación.** 120 ms `ease` en color de fondo, borde y tinta. Lo único que entra animado es el
+mensaje del hilo (180 ms) y los puntos de la espera del agente. **Sin spinners:** en una
+herramienta clínica se leen como caída, el estado de espera es texto ("Leyendo lo que me
+contaste…", "Evaluando…"). Todo respeta `prefers-reduced-motion`.
+
+Sin gradientes, sin sombras difusas, sin blur, sin emojis, sin ilustraciones, sin fotografía.
+Matria no tiene set de iconos: si hace falta uno, se pregunta antes de dibujarlo.
+
+**Estados vacíos.** Un vacío dice qué significa el vacío, no que falta un dato: "Sin señales de
+alarma en las últimas 24 horas", "No hay alertas pendientes. La cola está al día". Un campo sin
+responder dice "No preguntado" — un blanco nunca se lee como un no.
 
 ## 11. Definición de listo
 
