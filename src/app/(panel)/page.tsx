@@ -12,7 +12,7 @@ import { PerfilPaciente } from "@/components/PerfilPaciente";
 import { TabBar } from "@/components/TabBar";
 import { useConversacion } from "@/lib/hooks/useConversacion";
 import { usePanel } from "@/lib/hooks/usePanel";
-import type { Puerpera } from "@/lib/types";
+import { DIAS_PUERPERIO, type Puerpera } from "@/lib/types";
 
 /**
  * Lado de la matrona. El panel ocupa la pantalla completa: la pantalla dividida aparece dentro
@@ -67,11 +67,74 @@ function Dashboard() {
  * muestra como lo que es: un teléfono. Lo que sobra a los lados deja de ser vacío y pasa a decir
  * "esto no es el panel", que es justo lo que hay que entender al cambiar de vista.
  */
-function Marco({ children }: { children: React.ReactNode }) {
+function Marco({ aside, children }: { aside?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="ondas flex min-h-0 flex-1 justify-center overflow-hidden px-4 py-4">
+    <div className="ondas flex min-h-0 flex-1 justify-center gap-10 overflow-hidden px-4 py-4">
+      {aside}
       <div className="telefono flex min-h-0 w-full max-w-2xl flex-1 flex-col">{children}</div>
     </div>
+  );
+}
+
+/**
+ * Lo que va al lado del teléfono mientras ella se registra, en el hueco que antes era solo fondo.
+ *
+ * Dice qué es esto en tres líneas, que es justo lo que falta cuando lo primero que ve es un campo
+ * pidiendo su nombre. Se cae bajo 1024 px y no vuelve a aparecer una vez registrada: ahí el hueco
+ * vuelve a ser hueco, porque ya no hay nada que explicar.
+ */
+const PROMESAS = [
+  "Le escribes como le escribirías a una amiga, con tus palabras.",
+  "Una matrona lee lo que importa y te busca si algo no anda bien.",
+  "No te pedimos clave, RUT ni ningún dato para identificarte.",
+];
+
+function Bienvenida() {
+  return (
+    <aside className="hidden w-[300px] shrink-0 flex-col justify-center gap-6 py-8 lg:flex">
+      <div className="flex flex-col gap-3">
+        <p className="etiqueta" style={{ color: "var(--marca-200)" }}>
+          Seguimiento del puerperio
+        </p>
+        <p
+          className="text-[22px] leading-snug font-medium text-pretty"
+          style={{ color: "var(--marca-50)" }}
+        >
+          Te acompañamos los 42 días después del parto.
+        </p>
+      </div>
+
+      <ul className="flex flex-col gap-3">
+        {PROMESAS.map((promesa) => (
+          <li
+            key={promesa}
+            className="text-[13.5px] leading-relaxed text-pretty"
+            style={{ color: "color-mix(in srgb, var(--marca-200) 82%, transparent)" }}
+          >
+            {promesa}
+          </li>
+        ))}
+      </ul>
+
+      {/* Las 42 celdas en un solo tono: acá la franja es la marca, no un estado clínico. Con los
+          colores del riesgo estaría afirmando días que todavía no existen. */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-end gap-px" aria-hidden>
+          {Array.from({ length: DIAS_PUERPERIO }, (_, i) => (
+            <span
+              key={i}
+              className={`h-3 min-w-0 flex-1 rounded-[1.5px] ${(i + 1) % 7 === 0 && i + 1 !== DIAS_PUERPERIO ? "mr-1.5" : ""}`}
+              style={{
+                background: `color-mix(in srgb, var(--marca-200) ${i === 0 ? 70 : 22}%, transparent)`,
+              }}
+            />
+          ))}
+        </div>
+        <p className="tabular text-[11px]" style={{ color: "var(--marca-200)", opacity: 0.6 }}>
+          Día 1 de {DIAS_PUERPERIO}
+        </p>
+      </div>
+    </aside>
   );
 }
 
@@ -92,7 +155,7 @@ function DemoPaciente({ onVolverInicio }: { onVolverInicio: () => void }) {
 
   if (!puerpera)
     return (
-      <Marco>
+      <Marco aside={<Bienvenida />}>
         <FichaIngreso onListo={setPuerpera} onVolverInicio={onVolverInicio} />
       </Marco>
     );

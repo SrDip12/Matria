@@ -71,6 +71,22 @@
   --riesgo-medio-cabecera: #a06726;
   --riesgo-bajo-cabecera: #2d7d5a;
 
+  /**
+   * Color de acción: botones, chips activos, enlaces. Es el mismo rosa vinoso de la cabecera de
+   * alerta y NO es el rojo de marca.
+   *
+   * Que sean colores distintos es el punto: el rojo 600 pleno se lee como el rojo del riesgo
+   * alto —son el mismo valor, `--riesgo-alto` es `#c1121f`—, así que un botón "Entrar" pintado
+   * ahí gritaba tan fuerte como una alerta de escalamiento. La marca sigue siendo roja: vive en
+   * la barra superior, en el logo y en el foco.
+   *
+   * `--accion-tinta` es la versión para texto sobre superficie clara (botón secundario), donde
+   * el rosa de fondo no da el contraste que sí da sobre blanco.
+   */
+  --accion: #c24d68;
+  --accion-fuerte: #a83f57;
+  --accion-tinta: #9c3a51;
+
   /* La burbuja de la puérpera. Mismo rosa: un hilo largo de burbujas en rojo pleno cansa y
      compite con las alertas, que son lo único que debería gritar en esta pantalla. */
   --burbuja-suya: #c24d68;
@@ -107,11 +123,11 @@ select,
 }
 
 a {
-  color: var(--marca-600);
+  color: var(--accion-tinta);
   text-decoration: none;
 }
 a:hover {
-  color: var(--marca-500);
+  color: var(--accion);
 }
 
 /* --- Escala tipográfica ------------------------------------------------- */
@@ -232,19 +248,19 @@ a:hover {
 }
 
 .btn-primary {
-  background: var(--marca-600);
-  border: 1px solid var(--marca-600);
+  background: var(--accion);
+  border: 1px solid var(--accion);
   color: #ffffff;
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--marca-700);
-  border-color: var(--marca-700);
+  background: var(--accion-fuerte);
+  border-color: var(--accion-fuerte);
 }
 
 .btn-secondary {
   background: transparent;
   border: 1px solid var(--marca-200);
-  color: var(--marca-600);
+  color: var(--accion-tinta);
 }
 .btn-secondary:hover:not(:disabled) {
   background: var(--marca-50);
@@ -308,14 +324,14 @@ a:hover {
 }
 .chip[aria-pressed="true"],
 .chip[aria-selected="true"] {
-  background: var(--marca-600);
-  border-color: var(--marca-600);
+  background: var(--accion);
+  border-color: var(--accion);
   color: #ffffff;
 }
 .chip[aria-pressed="true"]:hover,
 .chip[aria-selected="true"]:hover {
-  background: var(--marca-700);
-  border-color: var(--marca-700);
+  background: var(--accion-fuerte);
+  border-color: var(--accion-fuerte);
   color: #ffffff;
 }
 
@@ -419,14 +435,19 @@ a:hover {
  * Ella abre esto en un teléfono, así que en la pantalla del demo se muestra como un teléfono:
  * la columna va enmarcada al centro y lo que sobra a los lados es fondo oscuro.
  *
- * El motivo son ondas: la franja de 42 días estirada y repetida. Va al 100 % en rojo 300 sobre
- * `--color-oscuro` y queda casi invisible a propósito — tiene que leerse como textura del fondo,
- * nunca como contenido. Es la única excepción a "sin patrones de fondo" del sistema y vive solo
- * acá: en el panel clínico no entra.
+ * El motivo es el partograma: la recta de la línea de alerta y, rezagada bajo ella, la curva de
+ * dilatación. Es el dibujo que la matrona traza a mano en el parto, así que la textura dice de
+ * qué es esta pantalla sin ilustrar nada. Va en rosa 200 al 14 % sobre `--color-oscuro` y queda
+ * al borde de lo invisible a propósito — tiene que leerse como textura del fondo, nunca como
+ * contenido. Es la única excepción a "sin patrones de fondo" del sistema y vive solo acá: en el
+ * panel clínico no entra.
+ *
+ * Las dos trazas van de esquina a esquina de la tesela, que es lo que las hace continuar de una
+ * a la siguiente sin corte visible.
  */
 .ondas {
   background-color: var(--color-oscuro);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120' fill='none'%3E%3Cg stroke='%23ff6b82' stroke-width='1' opacity='0.10'%3E%3Cpath d='M0 30 Q30 10 60 30 T120 30'/%3E%3Cpath d='M0 60 Q30 40 60 60 T120 60'/%3E%3Cpath d='M0 90 Q30 70 60 90 T120 90'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90' fill='none'%3E%3Cg stroke='%23e8b3ba' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M0 90 L90 0' opacity='0.09'/%3E%3Cpath d='M0 90 C26 78 40 66 55 50 S76 22 90 0' opacity='0.14'/%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 

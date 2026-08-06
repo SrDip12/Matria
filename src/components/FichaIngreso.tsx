@@ -366,7 +366,7 @@ function Avance({ paso }: { paso: number }) {
             key={i}
             aria-hidden
             className="h-1 flex-1 rounded-[1.5px] transition-colors duration-200"
-            style={{ background: i <= paso ? "var(--marca-500)" : "var(--color-linea)" }}
+            style={{ background: i <= paso ? "var(--accion)" : "var(--color-linea)" }}
           />
         ))}
       </div>

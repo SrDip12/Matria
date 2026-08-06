@@ -168,7 +168,7 @@ function Senales({ sospechas }: { sospechas: { sospecha: Sospecha; total: number
               className="block h-full rounded-[var(--radius-pill)]"
               style={{
                 width: `${Math.round((total / mayor) * 100)}%`,
-                background: "var(--marca-600)",
+                background: "var(--accion)",
               }}
             />
           </span>

@@ -170,7 +170,7 @@ export function PerfilPaciente({
               valor={
                 f.contacto_emergencia_telefono ? (
                   <a
-                    className="underline decoration-[var(--marca-200)] underline-offset-2 hover:decoration-[var(--marca-600)]"
+                    className="underline decoration-[var(--marca-200)] underline-offset-2 hover:decoration-[var(--accion)]"
                     href={`tel:${f.contacto_emergencia_telefono}`}
                   >
                     {f.contacto_emergencia_telefono}

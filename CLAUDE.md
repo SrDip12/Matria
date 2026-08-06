@@ -177,9 +177,12 @@ gris, y el riesgo nunca se comunica solo por color: siempre lleva su etiqueta de
 
 ```
 Marca 900      #5C0A18   barra superior
-Marca 600      #C1121F   acciones
 Marca 500      #E01E37   base de marca, foco
 Marca 200 / 50 #E8B3BA / #FDECEE   contornos y fondos suaves
+
+Acción         #C24D68   botones, chips activos, enlaces, progreso
+Acción fuerte  #A83F57   hover del primario
+Acción tinta   #9C3A51   texto de acción sobre superficie clara
 
 Fondo          #F2ECE9   neutral cálido, nunca gris frío
 Superficie     #FBF8F6   tarjetas y filas
@@ -197,9 +200,18 @@ Riesgo medio   #C97A05   revisar hoy
 Riesgo bajo    #1F8A5B   seguimiento normal
 ```
 
-Cada nivel de riesgo tiene además su trío tinta/fondo/borde para las píldoras. Los valores
-exactos viven en `tokens/colors.css` y su espejo de TypeScript es `TONO_RIESGO`
-(`src/lib/riesgo.ts`), que manda de ese lado.
+Cada nivel de riesgo tiene además su trío tinta/fondo/borde para las píldoras, y la cabecera de
+la tarjeta de alerta usa su tono `-cabecera`, un paso desaturado. Los valores exactos viven en
+`tokens/colors.css` y su espejo de TypeScript es `TONO_RIESGO` (`src/lib/riesgo.ts`), que manda
+de ese lado.
+
+**La acción no se pinta con el rojo de marca.** El rojo 600 es el mismo valor que `--riesgo-alto`
+(`#C1121F`), así que un botón pintado ahí grita tan fuerte como una alerta de escalamiento. Todo
+lo accionable —botones, chips activos, enlaces, barras de progreso— usa `--accion` y sus dos
+variantes. La marca sigue siendo roja y vive en la barra superior, en el logo y en el anillo de
+foco. Si tocas un color, primero pregúntate si comunica **riesgo**, **marca** o **acción**: son
+tres escalas distintas y mezclarlas es lo que hacía que el panel se leyera como una alarma
+permanente.
 
 **Tipografía: una sola familia, Inter**, servida desde Google Fonts. La jerarquía se hace por
 tamaño y aire, no por negrita: display 34/500, título 24/500, subtítulo 17/500, cuerpo 14/400,
