@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   FICHA_VACIA,
   type FichaExtendida,
@@ -10,32 +10,38 @@ import {
 } from "@/lib/types";
 
 /**
- * Ficha de ingreso, en tres pasos.
+ * Ficha de ingreso, en cuatro pasos.
  *
  * No es un cuestionario clínico: es el contexto con el que el agente va a leer lo que ella
- * cuente después. Antes esto era una conversación de treinta y una preguntas; el formulario de
- * tres pasos deja ver de una cuánto falta y se puede abandonar en cualquier punto.
+ * cuente después. Recoge la ficha extendida completa —la misma que la matrona lee en el caso—,
+ * así que si acá falta un campo, en la ficha del caso sale "No preguntado" para siempre.
  *
  * Solo nombre, edad, fecha y tipo de parto son obligatorios. Todo lo demás se puede saltar y
  * queda en null: un campo sin responder no es un "no", es un dato que nadie preguntó.
  *
- * Cada campo de acá alimenta un factor de §8 (`src/lib/factores.ts`). Si se saca uno, se pierde
- * el factor: peso y talla dan el IMC, las horas y la paridad dan el parto prolongado, y el
- * síndrome hipertensivo del embarazo es la excepción única de §8.
+ * Cada campo de acá alimenta un factor de §8 (`src/lib/factores.ts`) o un antecedente que la
+ * matrona necesita ver junto al caso. Si se saca uno, se pierde el factor.
  */
 
 type Respuestas = Record<string, string>;
+type Errores = Record<string, string>;
 
 interface Campo {
   k: string;
   etiqueta: string;
   /** `lista` es un desplegable nativo: para dieciséis opciones los chips no dan. */
-  tipo: "texto" | "numero" | "fecha" | "opciones" | "lista";
+  tipo: "texto" | "numero" | "fecha" | "telefono" | "opciones" | "lista";
   placeholder?: string;
+  ayuda?: string;
   opciones?: string[];
   multi?: boolean;
+  /** El texto se guarda como arreglo, separando por comas. */
+  comoLista?: boolean;
+  obligatorio?: boolean;
   /** Campos que solo tienen sentido según lo ya respondido. */
   si?: (r: Respuestas) => boolean;
+  /** Devuelve el mensaje de error, o null si el valor sirve. Solo corre si hay valor. */
+  validar?: (v: string, r: Respuestas) => string | null;
 }
 
 interface Paso {
@@ -65,14 +71,41 @@ const REGIONES = [
   "Magallanes y de la Antártica Chilena",
 ];
 
+/**
+ * Patologías del embarazo ordenadas por prevalencia, no alfabéticamente: lo que le pasa a más
+ * mujeres se ve primero. La colestasia intrahepática entra porque Chile tiene una de las
+ * prevalencias más altas del mundo y el listado genérico la deja fuera.
+ */
 const DEL_EMBARAZO = [
   "Ninguna",
-  "Síndrome hipertensivo del embarazo",
-  "Diabetes gestacional",
   "Anemia",
+  "Diabetes gestacional",
+  "Síndrome hipertensivo del embarazo",
+  "Infección urinaria",
+  "Colestasia intrahepática",
+  "Hipotiroidismo",
+  "Amenaza de parto prematuro",
+  "Otra",
 ];
 
-const DE_ANTES = ["Ninguna", "Hipertensión", "Diabetes", "Obesidad", "Tiroides"];
+const DE_ANTES = [
+  "Ninguna",
+  "Hipertensión",
+  "Diabetes",
+  "Obesidad",
+  "Hipotiroidismo",
+  "Asma",
+  "Depresión o ansiedad",
+  "Otra",
+];
+
+const HOY = () => new Date().toISOString().slice(0, 10);
+
+const rango = (min: number, max: number, unidad: string) => (v: string) => {
+  const n = Number(v.replace(",", "."));
+  if (Number.isNaN(n)) return "Escríbelo solo con números.";
+  return n < min || n > max ? `Tiene que estar entre ${min} y ${max} ${unidad}.` : null;
+};
 
 const PASOS: Paso[] = [
   {
@@ -80,27 +113,75 @@ const PASOS: Paso[] = [
     titulo: "¿Cómo fue el parto?",
     ayuda: "Con esto el agente sabe en qué día del puerperio vas y qué mirar primero.",
     campos: [
-      { k: "edad", etiqueta: "Edad", tipo: "numero", placeholder: "31" },
-      { k: "fecha_parto", etiqueta: "Fecha del parto", tipo: "fecha" },
-      { k: "semanas_gestacion", etiqueta: "Semanas de gestación", tipo: "numero", placeholder: "38" },
+      {
+        k: "edad",
+        etiqueta: "Edad",
+        tipo: "numero",
+        placeholder: "31",
+        obligatorio: true,
+        validar: rango(12, 60, "años"),
+      },
+      {
+        k: "fecha_parto",
+        etiqueta: "Fecha del parto",
+        tipo: "fecha",
+        obligatorio: true,
+        validar: (v) => {
+          if (v > HOY()) return "La fecha del parto no puede ser en el futuro.";
+          const dias = Math.floor((Date.parse(HOY()) - Date.parse(v)) / 86_400_000);
+          if (dias > 42) return "Pasaron más de 42 días: el puerperio de este parto ya terminó.";
+          return null;
+        },
+      },
+      {
+        k: "semanas_gestacion",
+        etiqueta: "Semanas de gestación",
+        tipo: "numero",
+        placeholder: "38",
+        validar: rango(20, 45, "semanas"),
+      },
       {
         k: "horas_trabajo_parto",
         etiqueta: "Horas de trabajo de parto",
         tipo: "numero",
         placeholder: "6",
+        validar: rango(0, 72, "horas"),
       },
-      { k: "tipo_parto", etiqueta: "Tipo de parto", tipo: "opciones", opciones: ["Vaginal", "Cesárea"] },
+      {
+        k: "tipo_parto",
+        etiqueta: "Tipo de parto",
+        tipo: "opciones",
+        opciones: ["Vaginal", "Cesárea"],
+        obligatorio: true,
+      },
       {
         k: "anestesia",
         etiqueta: "Anestesia",
         tipo: "opciones",
-        opciones: ["Sí · raquídea", "Sí · epidural", "No", "No sé"],
+        opciones: ["Sí · raquídea", "Sí · epidural", "Sí · general", "No", "No sé"],
       },
       {
         k: "embarazo_multiple",
-        etiqueta: "¿Venían dos o más?",
+        etiqueta: "Embarazo múltiple",
         tipo: "opciones",
-        opciones: ["No", "Sí"],
+        opciones: ["No", "Sí, gemelar o más"],
+        ayuda: "Si nació más de una guagua en este parto.",
+      },
+      {
+        k: "episiotomia",
+        etiqueta: "Episiotomía",
+        tipo: "opciones",
+        opciones: ["Sí", "No", "No sé"],
+        ayuda: "El corte que a veces se hace para ayudar a que salga la guagua.",
+        si: (r) => r.tipo_parto === "Vaginal",
+      },
+      {
+        k: "complicaciones_parto",
+        etiqueta: "Complicaciones del parto",
+        tipo: "texto",
+        comoLista: true,
+        placeholder: "desgarro, hemorragia",
+        ayuda: "Si fueron varias, sepáralas con coma.",
       },
     ],
   },
@@ -116,11 +197,47 @@ const PASOS: Paso[] = [
         opciones: ["Primer parto", "1 parto previo", "2 partos previos", "3 o más"],
       },
       {
+        k: "fecha_ultima_regla",
+        etiqueta: "Fecha de la última regla",
+        tipo: "fecha",
+        ayuda: "La anterior al embarazo. Si no te acuerdas, sáltala.",
+        validar: (v) => (v > HOY() ? "No puede ser una fecha futura." : null),
+      },
+      {
         k: "enfermedades_embarazo",
         etiqueta: "Enfermedades del embarazo",
         tipo: "opciones",
         multi: true,
         opciones: DEL_EMBARAZO,
+      },
+      {
+        k: "antecedentes_ginecologicos",
+        etiqueta: "Antecedentes ginecológicos",
+        tipo: "texto",
+        comoLista: true,
+        placeholder: "quiste ovárico, cesárea anterior",
+        ayuda: "Si son varios, sepáralos con coma.",
+      },
+    ],
+  },
+  {
+    zona: "Paso 3 · Tu salud",
+    titulo: "¿Cómo estás tú?",
+    ayuda: "Lo de antes del embarazo también pesa en cómo se lee lo que cuentes estos días.",
+    campos: [
+      {
+        k: "peso_kg",
+        etiqueta: "Peso hoy (kg)",
+        tipo: "numero",
+        placeholder: "68",
+        validar: rango(30, 250, "kg"),
+      },
+      {
+        k: "talla_cm",
+        etiqueta: "Talla (cm)",
+        tipo: "numero",
+        placeholder: "162",
+        validar: rango(100, 220, "cm"),
       },
       {
         k: "enfermedades_cronicas",
@@ -129,15 +246,37 @@ const PASOS: Paso[] = [
         multi: true,
         opciones: DE_ANTES,
       },
+      {
+        k: "medicamentos_habituales",
+        etiqueta: "Medicamentos que tomas seguido",
+        tipo: "texto",
+        comoLista: true,
+        placeholder: "ácido fólico, fierro",
+        ayuda: "Si son varios, sepáralos con coma.",
+      },
+      {
+        k: "antecedentes_familiares",
+        etiqueta: "Enfermedades en tu familia directa",
+        tipo: "texto",
+        comoLista: true,
+        placeholder: "madre con hipertensión",
+        ayuda: "Mamá, papá, hermanas. Sepáralos con coma.",
+      },
       { k: "tabaco", etiqueta: "Tabaco", tipo: "opciones", opciones: ["No", "A veces", "Seguido"] },
-      { k: "peso_kg", etiqueta: "Peso hoy (kg)", tipo: "numero", placeholder: "68" },
-      { k: "talla_cm", etiqueta: "Talla (cm)", tipo: "numero", placeholder: "162" },
+      { k: "alcohol", etiqueta: "Alcohol", tipo: "opciones", opciones: ["No", "A veces", "Seguido"] },
+      {
+        k: "drogas",
+        etiqueta: "Otras drogas",
+        tipo: "opciones",
+        opciones: ["No", "A veces", "Seguido"],
+        ayuda: "Te lo preguntamos para cuidarte mejor. Acá nadie te va a retar.",
+      },
     ],
   },
   {
-    zona: "Paso 3 · Dónde te atendiste",
+    zona: "Paso 4 · Dónde te atendiste y tu red",
     titulo: "¿Dónde nació tu guagua?",
-    ayuda: "Sirve para que tu matrona del CESFAM te ubique en su cohorte.",
+    ayuda: "Sirve para que tu matrona del CESFAM te ubique en su cohorte y sepa a quién llamar.",
     campos: [
       {
         k: "establecimiento",
@@ -147,17 +286,50 @@ const PASOS: Paso[] = [
       },
       { k: "region", etiqueta: "Región", tipo: "lista", opciones: REGIONES },
       {
-        k: "episiotomia",
-        etiqueta: "Episiotomía",
+        k: "apego_inmediato",
+        etiqueta: "Apego inmediato",
         tipo: "opciones",
         opciones: ["Sí", "No", "No sé"],
-        si: (r) => r.tipo_parto === "Vaginal",
+        ayuda: "Si te la pusieron en el pecho apenas nació.",
+      },
+      {
+        k: "fecha_inicio_lactancia",
+        etiqueta: "Inicio de la lactancia",
+        tipo: "fecha",
+        validar: (v, r) => {
+          if (v > HOY()) return "No puede ser una fecha futura.";
+          if (r.fecha_parto && v < r.fecha_parto) return "No puede ser antes del parto.";
+          return null;
+        },
+      },
+      {
+        k: "contacto_emergencia_nombre",
+        etiqueta: "¿A quién llamamos si no te ubicamos?",
+        tipo: "texto",
+        placeholder: "Carolina Pérez",
+      },
+      {
+        k: "contacto_emergencia_relacion",
+        etiqueta: "¿Qué es tuya?",
+        tipo: "texto",
+        placeholder: "pareja",
+        si: (r) => !!r.contacto_emergencia_nombre?.trim(),
+      },
+      {
+        k: "contacto_emergencia_telefono",
+        etiqueta: "Su teléfono",
+        tipo: "telefono",
+        placeholder: "+56 9 8765 4321",
+        si: (r) => !!r.contacto_emergencia_nombre?.trim(),
+        validar: (v) =>
+          v.replace(/\D/g, "").length < 8 ? "Faltan dígitos para que sea un teléfono." : null,
       },
     ],
   },
 ];
 
 const TOTAL_CAMPOS = PASOS.reduce((s, p) => s + p.campos.length, 0);
+const TODOS = PASOS.flatMap((p) => p.campos);
 
 const HABITO: Record<string, Habito> = { No: "no", "A veces": "ocasional", Seguido: "habitual" };
 const PARIDAD: Record<string, number> = {
@@ -178,7 +350,13 @@ const siNo = (v?: string) => (v === "Sí" ? true : v === "No" ? false : null);
 const listaDe = (v?: string) =>
   !v || v === "Ninguna" ? [] : v.split(" · ").filter((x) => x && x !== "Ninguna");
 
-/** Barra de avance segmentada: tres tramos, uno por paso. */
+const porComas = (v?: string) =>
+  (v ?? "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+/** Barra de avance segmentada: un tramo por paso. */
 function Avance({ paso }: { paso: number }) {
   return (
     <div className="flex items-center gap-2">
@@ -199,20 +377,40 @@ function Avance({ paso }: { paso: number }) {
   );
 }
 
+/** El mensaje bajo un campo con problema. Nunca solo el borde rojo: el color no es el mensaje. */
+function MensajeError({ mensaje }: { mensaje?: string }) {
+  if (!mensaje) return null;
+  return (
+    <span
+      role="alert"
+      className="text-[12px] leading-normal text-pretty"
+      style={{ color: "var(--riesgo-alto-tinta)" }}
+    >
+      {mensaje}
+    </span>
+  );
+}
+
 function CampoOpciones({
   campo,
   valor,
+  error,
   onElegir,
 }: {
   campo: Campo;
   valor?: string;
+  error?: string;
   onElegir: (v: string) => void;
 }) {
   const marcados = campo.multi ? listaDe(valor) : [];
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="etiqueta-tenue">{campo.etiqueta}</span>
+    <div className="flex flex-col gap-1.5" id={`campo-${campo.k}`}>
+      <span className="etiqueta-tenue">
+        {campo.etiqueta}
+        {campo.obligatorio && <span aria-hidden> ·</span>}
+      </span>
+      {campo.ayuda && <span className="text-[12px] tenue">{campo.ayuda}</span>}
       <div className="flex flex-wrap gap-1.5">
         {campo.opciones!.map((o) => {
           const activo = campo.multi ? marcados.includes(o) || valor === o : valor === o;
@@ -222,6 +420,7 @@ function CampoOpciones({
               type="button"
               className="chip"
               aria-pressed={activo}
+              style={error ? { borderColor: "var(--riesgo-alto)" } : undefined}
               onClick={() => {
                 if (!campo.multi) return onElegir(activo ? "" : o);
                 if (o === "Ninguna") return onElegir(activo ? "" : "Ninguna");
@@ -234,6 +433,7 @@ function CampoOpciones({
           );
         })}
       </div>
+      <MensajeError mensaje={error} />
     </div>
   );
 }
@@ -301,11 +501,22 @@ export function FichaIngreso({
   const [etapa, setEtapa] = useState<"nombre" | "pasos">("nombre");
   const [nombre, setNombre] = useState("");
   const [r, setR] = useState<Respuestas>({});
+  const [errores, setErrores] = useState<Errores>({});
   const [paso, setPaso] = useState(0);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const scroller = useRef<HTMLDivElement>(null);
 
-  const cambiar = (k: string, v: string) => setR((prev) => ({ ...prev, [k]: v }));
+  /** Al corregir se limpia el error de ese campo: dejarlo rojo mientras escribe es castigarla. */
+  const cambiar = (k: string, v: string) => {
+    setR((prev) => ({ ...prev, [k]: v }));
+    setErrores((prev) => {
+      if (!prev[k]) return prev;
+      const resto = { ...prev };
+      delete resto[k];
+      return resto;
+    });
+  };
 
   if (etapa === "nombre") {
     return (
@@ -325,9 +536,54 @@ export function FichaIngreso({
   const opciones = campos.filter((c) => c.tipo === "opciones");
   const ultimo = paso === PASOS.length - 1;
   const contestados = Object.entries(r).filter(([, v]) => v);
-  const faltaObligatorio = !r.edad || !r.fecha_parto || !r.tipo_parto;
+
+  /**
+   * Revisa los campos visibles del paso. Devuelve el primero con problema para poder llevarla
+   * hasta ahí: un formulario que dice "hay un error" sin decir dónde es peor que no decir nada.
+   */
+  function revisar(indice: number): string | null {
+    const nuevos: Errores = {};
+    for (const c of PASOS[indice].campos) {
+      if (c.si && !c.si(r)) continue;
+      const v = (r[c.k] ?? "").trim();
+      if (!v) {
+        if (c.obligatorio) nuevos[c.k] = "Necesito este dato para poder acompañarte.";
+        continue;
+      }
+      const malo = c.validar?.(v, r);
+      if (malo) nuevos[c.k] = malo;
+    }
+    setErrores(nuevos);
+    const primero = PASOS[indice].campos.find((c) => nuevos[c.k]);
+    return primero?.k ?? null;
+  }
+
+  function irA(k: string) {
+    const el = document.getElementById(`campo-${k}`);
+    if (!el) return;
+    const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: quieto ? "auto" : "smooth", block: "center" });
+    el.querySelector<HTMLElement>("input, select, button")?.focus({ preventScroll: true });
+  }
+
+  function avanzar() {
+    const falla = revisar(paso);
+    if (falla) return irA(falla);
+    setPaso(paso + 1);
+    scroller.current?.scrollTo({ top: 0 });
+  }
 
   async function registrar() {
+    // Los obligatorios viven en el paso 1, así que se revisa entero antes de mandar nada.
+    for (let i = 0; i < PASOS.length; i++) {
+      const falla = revisar(i);
+      if (falla) {
+        setPaso(i);
+        setTimeout(() => irA(falla), 60);
+        return;
+      }
+    }
+
     setEnviando(true);
     setError(null);
 
@@ -338,14 +594,26 @@ export function FichaIngreso({
       semanas_gestacion: numero(r.semanas_gestacion),
       horas_trabajo_parto: numero(r.horas_trabajo_parto),
       paridad: r.paridad ? PARIDAD[r.paridad] : null,
+      fecha_ultima_regla: r.fecha_ultima_regla || null,
       enfermedades_embarazo: listaDe(r.enfermedades_embarazo),
       enfermedades_cronicas: cronicas,
-      embarazo_multiple: siNo(r.embarazo_multiple),
+      antecedentes_familiares: porComas(r.antecedentes_familiares),
+      antecedentes_ginecologicos: porComas(r.antecedentes_ginecologicos),
+      medicamentos_habituales: porComas(r.medicamentos_habituales),
+      complicaciones_parto: porComas(r.complicaciones_parto),
+      embarazo_multiple: r.embarazo_multiple ? r.embarazo_multiple.startsWith("Sí") : null,
       // "No sé" no es un no: queda sin responder, igual que un campo en blanco.
       uso_anestesia: r.anestesia?.startsWith("Sí") ? true : r.anestesia === "No" ? false : null,
       tipo_anestesia: r.anestesia?.startsWith("Sí") ? r.anestesia.split(" · ")[1] : null,
       episiotomia: siNo(r.episiotomia),
+      apego_inmediato: siNo(r.apego_inmediato),
+      fecha_inicio_lactancia: r.fecha_inicio_lactancia || null,
       tabaco: r.tabaco ? HABITO[r.tabaco] : null,
+      alcohol: r.alcohol ? HABITO[r.alcohol] : null,
+      drogas: r.drogas ? HABITO[r.drogas] : null,
+      contacto_emergencia_nombre: r.contacto_emergencia_nombre || null,
+      contacto_emergencia_relacion: r.contacto_emergencia_relacion || null,
+      contacto_emergencia_telefono: r.contacto_emergencia_telefono || null,
     };
 
     try {
@@ -378,8 +646,10 @@ export function FichaIngreso({
     }
   }
 
+  const conError = Object.keys(errores).length;
+
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
+    <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto flex w-full max-w-[672px] flex-col gap-5 px-6 pt-7 pb-10">
         <div key={paso} className="vista-entra flex flex-col gap-2.5">
           <Avance paso={paso} />
@@ -392,26 +662,54 @@ export function FichaIngreso({
           {textos.length > 0 && (
             <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
               {textos.map((c) => (
-                <label key={c.k} className="flex min-w-0 flex-col gap-1.5">
-                  <span className="etiqueta-tenue">{c.etiqueta}</span>
+                <label
+                  key={c.k}
+                  id={`campo-${c.k}`}
+                  className={`flex min-w-0 flex-col gap-1.5 ${c.comoLista || c.ayuda ? "sm:col-span-2" : ""}`}
+                >
+                  <span className="etiqueta-tenue">
+                    {c.etiqueta}
+                    {c.obligatorio && <span aria-hidden> ·</span>}
+                  </span>
+                  {c.ayuda && <span className="text-[12px] tenue">{c.ayuda}</span>}
                   <input
                     className="input"
                     name={c.k}
                     autoComplete="off"
                     spellCheck={false}
-                    type={c.tipo === "fecha" ? "date" : c.tipo === "numero" ? "number" : "text"}
+                    aria-invalid={!!errores[c.k]}
+                    type={
+                      c.tipo === "fecha"
+                        ? "date"
+                        : c.tipo === "numero"
+                          ? "number"
+                          : c.tipo === "telefono"
+                            ? "tel"
+                            : "text"
+                    }
                     inputMode={c.tipo === "numero" ? "decimal" : undefined}
+                    max={c.tipo === "fecha" ? HOY() : undefined}
                     placeholder={c.placeholder}
                     value={r[c.k] ?? ""}
                     onChange={(e) => cambiar(c.k, e.target.value)}
+                    style={
+                      errores[c.k]
+                        ? { borderColor: "var(--riesgo-alto)", background: "var(--riesgo-alto-fondo)" }
+                        : undefined
+                    }
                   />
+                  <MensajeError mensaje={errores[c.k]} />
                 </label>
               ))}
             </div>
           )}
 
           {listas.map((c) => (
-            <label key={c.k} className="flex min-w-0 flex-col gap-1.5 sm:max-w-[380px]">
+            <label
+              key={c.k}
+              id={`campo-${c.k}`}
+              className="flex min-w-0 flex-col gap-1.5 sm:max-w-[380px]"
+            >
               <span className="etiqueta-tenue">{c.etiqueta}</span>
               <select
                 className="input select"
@@ -430,7 +728,13 @@ export function FichaIngreso({
           ))}
 
           {opciones.map((c) => (
-            <CampoOpciones key={c.k} campo={c} valor={r[c.k]} onElegir={(v) => cambiar(c.k, v)} />
+            <CampoOpciones
+              key={c.k}
+              campo={c}
+              valor={r[c.k]}
+              error={errores[c.k]}
+              onElegir={(v) => cambiar(c.k, v)}
+            />
           ))}
 
           <p className="text-xs leading-relaxed text-pretty tenue">
@@ -454,9 +758,7 @@ export function FichaIngreso({
               </div>
               {contestados.map(([k, v]) => (
                 <div key={k} className="flex min-w-0 flex-col gap-0.5">
-                  <dt className="etiqueta-tenue">
-                    {PASOS.flatMap((p) => p.campos).find((c) => c.k === k)?.etiqueta ?? k}
-                  </dt>
+                  <dt className="etiqueta-tenue">{TODOS.find((c) => c.k === k)?.etiqueta ?? k}</dt>
                   <dd className="text-[13.5px] leading-snug break-words">{v}</dd>
                 </div>
               ))}
@@ -478,10 +780,15 @@ export function FichaIngreso({
           </p>
         )}
 
-        {ultimo && faltaObligatorio && (
-          <p className="text-xs leading-relaxed text-pretty tenue">
-            Falta tu edad, la fecha del parto o el tipo de parto. Son los tres únicos datos que
-            necesito para poder acompañarte: están en el paso 1.
+        {conError > 0 && (
+          <p
+            role="status"
+            className="text-[13px] leading-relaxed text-pretty"
+            style={{ color: "var(--riesgo-alto-tinta)" }}
+          >
+            {conError === 1
+              ? "Hay un dato que necesito que revises, está marcado más arriba."
+              : `Hay ${conError} datos que necesito que revises, están marcados más arriba.`}
           </p>
         )}
 
@@ -490,19 +797,26 @@ export function FichaIngreso({
             <button
               type="button"
               className="btn btn-primary"
-              disabled={enviando || faltaObligatorio}
+              disabled={enviando}
               onClick={registrar}
             >
               {enviando ? "Guardando…" : "Empezar el acompañamiento →"}
             </button>
           ) : (
-            <button type="button" className="btn btn-primary" onClick={() => setPaso(paso + 1)}>
+            <button type="button" className="btn btn-primary" onClick={avanzar}>
               Continuar →
             </button>
           )}
 
           {paso > 0 ? (
-            <button type="button" className="btn btn-ghost" onClick={() => setPaso(paso - 1)}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                setErrores({});
+                setPaso(paso - 1);
+              }}
+            >
               Volver al paso anterior
             </button>
           ) : (
@@ -515,7 +829,10 @@ export function FichaIngreso({
             <button
               type="button"
               className="btn btn-ghost ml-auto"
-              onClick={() => setPaso(PASOS.length - 1)}
+              onClick={() => {
+                setErrores({});
+                setPaso(PASOS.length - 1);
+              }}
             >
               Llenarla después
             </button>

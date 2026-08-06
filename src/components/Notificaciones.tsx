@@ -27,12 +27,16 @@ interface Aviso {
   nivel?: NivelRiesgo;
 }
 
-/** §2 y §3.1: lo que el protocolo pide no dejar pasar. En sus palabras, no en las del protocolo. */
+/**
+ * §2 y §3.1: lo que el protocolo pide no dejar pasar. En sus palabras, no en las del protocolo:
+ * el protocolo dice "loquios" y ella dice sangrado, así que acá dice sangrado. El nombre clínico
+ * vive en el prompt del agente y en la ficha de la matrona, que es donde sirve.
+ */
 const SENALES = [
   "Dolor de cabeza que no se te pasa, ver borroso o zumbido en los oídos",
   "Fiebre, o sentir que tienes fiebre aunque no la puedas medir",
   "Sangrado que aumenta en vez de ir bajando",
-  "Loquios con mal olor",
+  "Sangrado con mal olor",
   "Dolor fuerte en la guata o en la herida, o que la herida se ponga roja o supure",
   "Hinchazón o dolor en una sola pierna, o que te falte el aire",
   "Ganas de no seguir, o pensamientos de hacerte daño",
