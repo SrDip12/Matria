@@ -291,20 +291,25 @@ export async function registrarEvaluacion(
  * el protocolo manda preguntar después de cada hallazgo. Acá solo se persiste.
  */
 async function responder(puerperaId: string, dia_puerperio: number, salida: SalidaAgente) {
-  // El último mensaje del sistema, para no repetir el mismo texto exacto dos veces seguidas.
-  const { data: previo } = await supabase
+  // Los últimos mensajes del sistema, del más reciente al más antiguo. Con uno solo no alcanza:
+  // las dos aperturas se alternaban y el mensaje volvía idéntico cada dos turnos, y una pregunta
+  // ya hecha hace tres mensajes se volvía a hacer igual.
+  const { data: previos } = await supabase
     .from("mensajes")
     .select("texto")
     .eq("puerpera_id", puerperaId)
     .eq("autor", "sistema")
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(6);
 
   const { error } = await supabase.from("mensajes").insert({
     puerpera_id: puerperaId,
     autor: "sistema",
-    texto: respuestaParaElla(salida, dia_puerperio, previo?.texto ?? undefined),
+    texto: respuestaParaElla(
+      salida,
+      dia_puerperio,
+      ((previos ?? []) as { texto: string }[]).map((m) => m.texto)
+    ),
     dia_puerperio,
   });
   fallar("respuesta", error);
