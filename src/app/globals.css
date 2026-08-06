@@ -92,6 +92,21 @@
   /* La burbuja de la puérpera. Mismo rosa: un hilo largo de burbujas en rojo pleno cansa y
      compite con las alertas, que son lo único que debería gritar en esta pantalla. */
   --burbuja-suya: #c8446a;
+  /* La píldora de sugerencia: el mismo rosa al 12 % sobre blanco. Es una propuesta, no algo que
+     ella ya dijo, así que no puede verse igual que su propia burbuja. */
+  --burbuja-sugerida: #f8e9ed;
+
+  /**
+   * Sombras. El sistema nació sin ninguna y la jerarquía se hacía solo con el valor del fondo;
+   * en el hilo eso no alcanzaba —la burbuja blanca del agente sobre la superficie clara del
+   * teléfono no tenía borde de separación real.
+   *
+   * Son de la tinta del título y no de negro puro: una sombra gris sobre un neutral cálido se
+   * lee sucia. Solo el hilo y el campo de escribir las usan. **En el panel clínico no entran:**
+   * ahí la jerarquía sigue siendo el valor del fondo.
+   */
+  --sombra-1: 0 1px 2px rgba(58, 26, 32, 0.05), 0 2px 6px rgba(58, 26, 32, 0.05);
+  --sombra-2: 0 1px 2px rgba(58, 26, 32, 0.06), 0 4px 12px rgba(58, 26, 32, 0.07);
 }
 
 @theme inline {

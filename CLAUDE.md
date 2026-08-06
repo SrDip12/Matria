@@ -220,9 +220,14 @@ panel 13.5/400, etiqueta 11/600 con tracking 0.18em en versalitas. La cifra clí
 temperaturas, porcentajes, códigos de caso.
 
 **Espaciado, bordes y superficies.** Múltiplos de 4. Bordes de 1px. Radios: 4 sm, 8 md
-(botones, chips, campos), 10 lg (tarjetas y filas), 999 en píldoras. **No hay sistema de
-sombras: ninguna sombra, ni interior ni exterior.** La jerarquía de superficie se hace con el
-valor del fondo: fondo → superficie → superficie alta.
+(botones, chips, campos), 10 lg (tarjetas y filas), 999 en píldoras. La jerarquía de superficie
+se hace con el valor del fondo: fondo → superficie → superficie alta.
+
+**Sombras: solo en el hilo.** El sistema nació sin ninguna, y en el panel clínico sigue sin
+tenerlas —ahí manda el valor del fondo y punto. La excepción es la conversación: la burbuja
+blanca del agente sobre la superficie del teléfono no se despegaba, así que el hilo, las píldoras
+de sugerencia y el campo de escribir usan `--sombra-1` y `--sombra-2`. Están construidas con la
+tinta del título y no con negro: una sombra gris sobre un neutral cálido se lee sucia.
 
 **Elemento firma — la franja de 42 días.** Cada puérpera lleva una franja horizontal de 42
 celdas con tres estados que no son intercambiables: celda en color (hubo contacto y esa fue la
@@ -240,7 +245,7 @@ desvanezca para ver lo siguiente es tiempo regalado. **Sin spinners:** en una he
 se leen como caída, el estado de espera es texto ("Leyendo lo que me contaste…", "Evaluando…").
 Todo respeta `prefers-reduced-motion`.
 
-Sin gradientes, sin sombras difusas, sin blur, sin emojis, sin ilustraciones, sin fotografía.
+Sin gradientes, sin blur, sin emojis, sin ilustraciones, sin fotografía.
 
 **Contraste.** Todo texto cumple WCAG AA: 4.5:1 mínimo, y casi toda la tinta del sistema es de 11
 a 13 px, así que no hay excepción de "texto grande" que aplique. Antes de bajar un tono o subir un

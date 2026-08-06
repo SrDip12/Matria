@@ -32,8 +32,16 @@ export function Burbuja({
       }
       style={
         suya
-          ? { background: "var(--burbuja-suya)", color: "#ffffff" }
-          : { background: "var(--color-surface-alta)", borderColor: "var(--color-border)" }
+          ? {
+              background: "var(--burbuja-suya)",
+              color: "#ffffff",
+              boxShadow: "var(--sombra-2)",
+            }
+          : {
+              background: "var(--color-surface-alta)",
+              borderColor: "var(--color-border)",
+              boxShadow: "var(--sombra-1)",
+            }
       }
     >
       {children}
@@ -196,8 +204,10 @@ export function Conversacion({
                     onClick={() => enviar(sugerencia)}
                     className="chip max-w-full !rounded-[var(--radius-pill)] !px-3.5 !py-2 text-left !text-[13px] !whitespace-normal"
                     style={{
-                      background: "var(--color-surface-alta)",
-                      color: "var(--color-text)",
+                      background: "var(--burbuja-sugerida)",
+                      borderColor: "var(--marca-200)",
+                      color: "var(--accion-tinta)",
+                      boxShadow: "var(--sombra-1)",
                     }}
                   >
                     {sugerencia}
@@ -274,9 +284,15 @@ export function Conversacion({
               value={texto}
               disabled={enviando}
               onChange={(evento) => setTexto(evento.target.value)}
+              style={{ boxShadow: "var(--sombra-1)" }}
             />
           </label>
-          <button type="submit" className="btn btn-primary" disabled={enviando || !texto.trim()}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={enviando || !texto.trim()}
+            style={{ boxShadow: "var(--sombra-2)" }}
+          >
             {enviando ? "Evaluando…" : "Enviar"}
           </button>
         </div>
