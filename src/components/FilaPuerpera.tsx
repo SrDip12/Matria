@@ -96,13 +96,16 @@ export function FilaPuerpera({
         </button>
 
         {alertas_pendientes.length > 0 && (
+          // Varias alertas van en paralelo, no apiladas: cada una toma una fracción igual de la
+          // fila y solo se envuelven a otra línea si no caben. Con una sola, flex-1 la deja a lo ancho.
           <div
-            className="flex flex-col gap-2 border-t px-3 py-3"
+            className="flex flex-wrap gap-2 border-t px-3 py-3"
             style={{ borderColor: "var(--color-linea)" }}
           >
             {alertas_pendientes.map((alerta) => (
               <TarjetaAlerta
                 key={alerta.id}
+                className="alerta-entra min-w-0 flex-1 basis-[320px]"
                 nivel={alerta.nivel}
                 encabezado={ENCABEZADO_ALERTA[alerta.nivel]}
                 at={alerta.created_at}

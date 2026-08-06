@@ -503,6 +503,26 @@ a:hover {
   animation: vista-entra 200ms ease-out;
 }
 
+/* --- Alerta -------------------------------------------------------------- */
+
+/* Una alerta recién llegada entra con cuatro píxeles de subida, como el mensaje del hilo. Solo
+   se anima cuando aparece: la lista va keyeada por id de alerta, así que las que ya estaban no
+   remontan y el polling de 3s no re-anima nada. Es el momento de la rúbrica —entra el mensaje,
+   sale la alerta— y sin esto la alerta aparece de golpe y se pierde. */
+@keyframes alerta-entra {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.alerta-entra {
+  animation: alerta-entra 200ms ease-out;
+}
+
 /* --- Hilo ---------------------------------------------------------------- */
 
 /* El mensaje entra desde abajo, cuatro píxeles. Es la única animación de entrada del sistema
@@ -555,7 +575,8 @@ a:hover {
   }
 
   .msj,
-  .vista-entra {
+  .vista-entra,
+  .alerta-entra {
     animation: none;
   }
   .esqueleto {

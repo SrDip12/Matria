@@ -18,15 +18,19 @@ interface TarjetaAlertaProps {
   encabezado: string;
   at: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-export function TarjetaAlerta({ nivel, encabezado, at, children }: TarjetaAlertaProps) {
+export function TarjetaAlerta({ nivel, encabezado, at, children, className }: TarjetaAlertaProps) {
   const tono = TONO_RIESGO[nivel];
 
   return (
-    <div className="card-alta overflow-hidden" style={{ borderColor: tono.borde }}>
+    <div
+      className={`card-alta overflow-hidden${className ? ` ${className}` : ""}`}
+      style={{ borderColor: tono.borde }}
+    >
       <div
-        className="flex items-center justify-between gap-3 px-3 py-1.5"
+        className="flex items-center justify-between gap-3 px-4 py-2.5"
         style={{ background: `var(--riesgo-${nivel}-cabecera)` }}
       >
         <span
@@ -43,7 +47,7 @@ export function TarjetaAlerta({ nivel, encabezado, at, children }: TarjetaAlerta
           hace {haceCuanto(at)}
         </span>
       </div>
-      <div className="flex flex-col gap-2 p-3">{children}</div>
+      <div className="flex flex-col gap-2.5 p-4">{children}</div>
     </div>
   );
 }

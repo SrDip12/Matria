@@ -387,7 +387,7 @@ function Caso({
           {alertas_pendientes.length > 0 && (
             <ul className="flex flex-col gap-2">
               {alertas_pendientes.map((alerta) => (
-                <li key={alerta.id}>
+                <li key={alerta.id} className="alerta-entra">
                   <TarjetaAlerta
                     nivel={alerta.nivel}
                     encabezado={ENCABEZADO_ALERTA[alerta.nivel]}

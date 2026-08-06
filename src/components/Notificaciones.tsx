@@ -99,7 +99,7 @@ export function Notificaciones({ fila }: NotificacionesProps) {
       <ol className="flex flex-col gap-2" aria-live="polite">
         {lista.map((aviso) =>
           aviso.nivel ? (
-            <li key={aviso.id}>
+            <li key={aviso.id} className="alerta-entra">
               <TarjetaAlerta nivel={aviso.nivel} encabezado={aviso.encabezado} at={aviso.at}>
                 <p className="subtitulo">{aviso.titulo}</p>
                 <p className="text-[13.5px] leading-relaxed text-pretty">{aviso.detalle}</p>

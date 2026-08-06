@@ -275,7 +275,7 @@ function Cola({
         const [etiqueta, codigo] = partirEtiqueta(fila.puerpera.nombre);
         const restantes = fila.alertas_pendientes.length - 1;
         return (
-          <li key={fila.puerpera.id}>
+          <li key={fila.puerpera.id} className="alerta-entra">
             <TarjetaAlerta
               nivel={alerta.nivel}
               encabezado={ENCABEZADO_ALERTA[alerta.nivel]}
