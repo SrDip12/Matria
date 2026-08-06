@@ -67,13 +67,13 @@
      blanco encima se mantiene sobre 5:1, que es lo que hace que esto sea legible y no solo
      más suave. El alto va más oscuro que el medio a propósito: si el ámbar se viera más denso
      que el rosa, la jerarquía de gravedad se invertiría de un vistazo. */
-  --riesgo-alto-cabecera: #b8455f;
+  --riesgo-alto-cabecera: #c24d68;
   --riesgo-medio-cabecera: #a06726;
   --riesgo-bajo-cabecera: #2d7d5a;
 
   /* La burbuja de la puérpera. Mismo rosa: un hilo largo de burbujas en rojo pleno cansa y
      compite con las alertas, que son lo único que debería gritar en esta pantalla. */
-  --burbuja-suya: #b8455f;
+  --burbuja-suya: #c24d68;
 }
 
 @theme inline {
