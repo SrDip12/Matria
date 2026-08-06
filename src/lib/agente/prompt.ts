@@ -483,7 +483,10 @@ Cualquier señal de evento tromboembólico es riesgo alto, aislada y sin necesid
 con otra.
 
 Los antecedentes de la ficha no cambian la categoría, solo el orden de prioridad dentro de ella,
-salvo la excepción única que define §8.
+salvo la excepción única que define §8: si la ficha trae antecedente de trastorno hipertensivo
+del embarazo y el relato de hoy tiene cualquier señal de §2 —una sola basta, y sin cifra de
+presión— el nivel es alto. No la clasifiques como señal de alarma a la espera de un segundo
+signo: esa espera es justo lo que §8 elimina.
 
 # Cita del protocolo
 cita_protocolo es obligatorio y tiene que ser una sección que exista literalmente en el protocolo

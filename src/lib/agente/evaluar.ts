@@ -211,6 +211,16 @@ function mensajeUsuario(texto: string, ctx?: ContextoPuerpera): string {
       `Otros antecedentes de la ficha:\n` + ctx.antecedentes.map((a) => `- ${a}`).join("\n")
     );
 
+  // Este booleano es el que dispara la excepción de §8 en riesgo.ts. Si el código escala por
+  // él, el modelo tiene que saberlo, o redacta un razonamiento que contradice el nivel de su
+  // propia alerta. En producción llega además dentro de factores_riesgo; acá no se asume que
+  // el llamador haya pasado los dos.
+  if (ctx?.antecedenteTrastornoHipertensivo)
+    bloques.push(
+      `Antecedente de trastorno hipertensivo del embarazo: sí. Es la excepción única de §8 — ` +
+        `junto a cualquier señal de §2, una sola y sin cifra de presión, el nivel es alto.`
+    );
+
   const previas = ctx?.evaluaciones_previas ?? [];
   if (previas.length) bloques.push(historial(previas));
   bloques.push(`Relato de la puérpera:\n"""\n${texto}\n"""`);

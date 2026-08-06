@@ -132,7 +132,7 @@ estructurada y no hay que parsear texto ni limpiar bloques de markdown.
       },
       "razonamiento": {
         "type": "string",
-        "description": "Máximo dos frases dirigidas a la matrona. Describe hallazgos y por qué se escala. Nunca afirma un diagnóstico."
+        "description": "Máximo dos frases dirigidas a la matrona. Describe los hallazgos y su peso clínico. No nombres el nivel ni la categoría: eso lo dice nivel_riesgo, y las reglas duras pueden subirlo después de ti. Nunca afirma un diagnóstico."
       },
       "accion_sugerida": {
         "type": "string",
