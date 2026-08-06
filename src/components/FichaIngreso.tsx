@@ -165,14 +165,14 @@ const PASOS: Paso[] = [
         etiqueta: "Embarazo múltiple",
         tipo: "opciones",
         opciones: ["No", "Sí, gemelar o más"],
-        ayuda: "Si nació más de una guagua en este parto.",
+        ayuda: "Si nació más de un bebé en este parto.",
       },
       {
         k: "episiotomia",
         etiqueta: "Episiotomía",
         tipo: "opciones",
         opciones: ["Sí", "No", "No sé"],
-        ayuda: "El corte que a veces se hace para ayudar a que salga la guagua.",
+        ayuda: "El corte que a veces se hace para ayudar a que salga el bebé.",
         si: (r) => r.tipo_parto === "Vaginal",
       },
       {
@@ -275,7 +275,7 @@ const PASOS: Paso[] = [
   },
   {
     zona: "Paso 4 · Dónde te atendiste y tu red",
-    titulo: "¿Dónde nació tu guagua?",
+    titulo: "¿Dónde nació tu bebé?",
     ayuda: "Sirve para que tu matrona del CESFAM te ubique en su cohorte y sepa a quién llamar.",
     campos: [
       {

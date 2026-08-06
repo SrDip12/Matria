@@ -69,7 +69,7 @@ function Dashboard() {
  */
 function Marco({ aside, children }: { aside?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="ondas flex min-h-0 flex-1 justify-center gap-10 overflow-hidden px-4 py-4">
+    <div className="flex min-h-0 flex-1 justify-center gap-10 overflow-hidden px-4 py-4">
       {aside}
       <div className="telefono flex min-h-0 w-full max-w-2xl flex-1 flex-col">{children}</div>
     </div>
@@ -92,13 +92,12 @@ const PROMESAS = [
 function Bienvenida() {
   return (
     <aside className="hidden w-[300px] shrink-0 flex-col justify-center gap-6 py-8 lg:flex">
+      {/* Tinta oscura: este bloque vive sobre el crema del motivo, no sobre un fondo oscuro. */}
       <div className="flex flex-col gap-3">
-        <p className="etiqueta" style={{ color: "var(--marca-200)" }}>
-          Seguimiento del puerperio
-        </p>
+        <p className="etiqueta">Seguimiento del puerperio</p>
         <p
           className="text-[22px] leading-snug font-medium text-pretty"
-          style={{ color: "var(--marca-50)" }}
+          style={{ color: "var(--color-titulo)" }}
         >
           Te acompañamos los 42 días después del parto.
         </p>
@@ -106,11 +105,7 @@ function Bienvenida() {
 
       <ul className="flex flex-col gap-3">
         {PROMESAS.map((promesa) => (
-          <li
-            key={promesa}
-            className="text-[13.5px] leading-relaxed text-pretty"
-            style={{ color: "color-mix(in srgb, var(--marca-200) 82%, transparent)" }}
-          >
+          <li key={promesa} className="text-[13.5px] leading-relaxed text-pretty suave">
             {promesa}
           </li>
         ))}
@@ -125,14 +120,12 @@ function Bienvenida() {
               key={i}
               className={`h-3 min-w-0 flex-1 rounded-[1.5px] ${(i + 1) % 7 === 0 && i + 1 !== DIAS_PUERPERIO ? "mr-1.5" : ""}`}
               style={{
-                background: `color-mix(in srgb, var(--marca-200) ${i === 0 ? 70 : 22}%, transparent)`,
+                background: `color-mix(in srgb, var(--accion) ${i === 0 ? 85 : 22}%, transparent)`,
               }}
             />
           ))}
         </div>
-        <p className="tabular text-[11px]" style={{ color: "var(--marca-200)", opacity: 0.6 }}>
-          Día 1 de {DIAS_PUERPERIO}
-        </p>
+        <p className="tabular text-[11px] tenue">Día 1 de {DIAS_PUERPERIO}</p>
       </div>
     </aside>
   );
@@ -169,7 +162,7 @@ function DemoPaciente({ onVolverInicio }: { onVolverInicio: () => void }) {
   return (
     <Marco>
       <nav
-        className="flex shrink-0 flex-wrap gap-1 border-b px-4 py-3 sm:px-6"
+        className="flex shrink-0 flex-wrap gap-1.5 border-b px-4 py-4 sm:px-6"
         role="tablist"
         aria-label="Mi seguimiento"
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
@@ -206,7 +199,6 @@ function DemoPaciente({ onVolverInicio }: { onVolverInicio: () => void }) {
             error={error}
             onEnviar={enviar}
             contexto="mia"
-            franja={fila?.franja}
           />
         </div>
       ) : (
@@ -239,7 +231,7 @@ export default function PanelPage() {
   // La barra superior está siempre, también en la puerta: es el chrome del producto, no de una
   // vista. Sin demo elegida no nombra ninguna ni ofrece cambiarla.
   return (
-    <main className="flex h-screen flex-col">
+    <main className="ondas flex h-screen flex-col">
       <TabBar demo={demo} onVolver={() => setDemo(null)} />
       {demo === null && <Inicio onElegir={setDemo} />}
       {demo === "matrona" && <Dashboard />}

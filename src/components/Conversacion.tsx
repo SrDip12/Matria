@@ -1,9 +1,8 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Franja42 } from "@/components/Franja42";
 import { ETIQUETA_PARTO, fechaHora, hora, partirEtiqueta } from "@/lib/formato";
-import { DIAS_PUERPERIO, type Mensaje, type NivelRiesgo, type Puerpera } from "@/lib/types";
+import { DIAS_PUERPERIO, type Mensaje, type Puerpera } from "@/lib/types";
 
 /**
  * Burbuja del hilo. La usa esta pantalla y también la ficha de ingreso, que es una conversación:
@@ -33,8 +32,16 @@ export function Burbuja({
       }
       style={
         suya
-          ? { background: "var(--burbuja-suya)", color: "#ffffff" }
-          : { background: "var(--color-surface-alta)", borderColor: "var(--color-border)" }
+          ? {
+              background: "var(--burbuja-suya)",
+              color: "#ffffff",
+              boxShadow: "var(--sombra-2)",
+            }
+          : {
+              background: "var(--color-surface-alta)",
+              borderColor: "var(--color-border)",
+              boxShadow: "var(--sombra-1)",
+            }
       }
     >
       {children}
@@ -92,8 +99,6 @@ interface ConversacionProps {
    * de caso y los antecedentes. Ella lee el suyo: ve su franja de 42 días y cómo pedirle ayuda.
    */
   contexto?: "matrona" | "mia";
-  /** Solo en el contexto propio: la franja de la puérpera sobre la conversación. */
-  franja?: (NivelRiesgo | null)[];
 }
 
 export function Conversacion({
@@ -103,7 +108,6 @@ export function Conversacion({
   error,
   onEnviar,
   contexto = "matrona",
-  franja,
 }: ConversacionProps) {
   const [texto, setTexto] = useState("");
   // Lo que acaba de escribir, mientras el agente lo evalúa. Sin esto su mensaje desaparece
@@ -145,24 +149,23 @@ export function Conversacion({
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col">
       <header
-        className="flex shrink-0 flex-col gap-1 border-b px-5 py-4"
+        className={`flex shrink-0 flex-col gap-1.5 border-b px-5 ${mia ? "py-5" : "py-4"}`}
         style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
       >
         <p className="etiqueta">{mia ? "Tu conversación" : "Canal de la puérpera"}</p>
         {mia ? (
-          <>
-            <h2 className="flex flex-wrap items-baseline gap-x-2.5">
-              <span className="subtitulo">Cuéntame cómo estás</span>
-              <span className="tabular text-xs font-normal suave">
-                día {puerpera.dia_puerperio} de {DIAS_PUERPERIO}
-              </span>
-            </h2>
-            {franja && (
-              <div className="pt-2">
-                <Franja42 franja={franja} diaActual={puerpera.dia_puerperio} />
-              </div>
-            )}
-          </>
+          /* Sin la franja de 42 celdas: acá era decoración y ella la tiene completa, con su
+             leyenda y sus cifras, en "Cómo he estado". El día se lleva la jerarquía. */
+          <h2 className="flex flex-wrap items-baseline gap-x-3">
+            <span className="subtitulo">Cuéntame cómo estás</span>
+            <span
+              className="tabular text-[15px] font-medium"
+              style={{ color: "var(--accion-tinta)" }}
+            >
+              Día {puerpera.dia_puerperio}
+            </span>
+            <span className="tabular text-xs suave">de {DIAS_PUERPERIO}</span>
+          </h2>
         ) : (
           <h2 className="flex flex-wrap items-baseline gap-x-2.5">
             <span className="subtitulo truncate">{etiqueta}</span>
@@ -191,13 +194,21 @@ export function Conversacion({
                   : "Todavía no hay mensajes en este canal. Cuando ella escriba, la evaluación aparece priorizada en el panel."}
               </Burbuja>
               <div className="flex flex-col items-end gap-1.5">
-                <span className="etiqueta-tenue">Puedes empezar por acá</span>
+                {/* La etiqueta va en la tinta secundaria y no en la tenue: es una instrucción,
+                    no un metadato, y tiene que leerse. */}
+                <span className="etiqueta">Puedes empezar por acá</span>
                 {SUGERENCIAS.map((sugerencia) => (
                   <button
                     key={sugerencia}
                     type="button"
                     onClick={() => enviar(sugerencia)}
-                    className="chip max-w-full !rounded-[var(--radius-pill)] text-left !whitespace-normal"
+                    className="chip max-w-full !rounded-[var(--radius-pill)] !px-3.5 !py-2 text-left !text-[13px] !whitespace-normal"
+                    style={{
+                      background: "var(--burbuja-sugerida)",
+                      borderColor: "var(--marca-200)",
+                      color: "var(--accion-tinta)",
+                      boxShadow: "var(--sombra-1)",
+                    }}
                   >
                     {sugerencia}
                   </button>
@@ -273,14 +284,20 @@ export function Conversacion({
               value={texto}
               disabled={enviando}
               onChange={(evento) => setTexto(evento.target.value)}
+              style={{ boxShadow: "var(--sombra-1)" }}
             />
           </label>
-          <button type="submit" className="btn btn-primary" disabled={enviando || !texto.trim()}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={enviando || !texto.trim()}
+            style={{ boxShadow: "var(--sombra-2)" }}
+          >
             {enviando ? "Evaluando…" : "Enviar"}
           </button>
         </div>
         {mia && (
-          <p className="text-[11.5px] leading-normal text-pretty tenue">
+          <p className="text-[12px] leading-normal text-pretty suave">
             Escríbelo con tus palabras, no tienes que usar términos médicos. Si aparece una señal
             de alarma, tu matrona la ve al momento.
           </p>

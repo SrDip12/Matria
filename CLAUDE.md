@@ -180,8 +180,8 @@ Marca 900      #5C0A18   barra superior
 Marca 500      #E01E37   base de marca, foco
 Marca 200 / 50 #E8B3BA / #FDECEE   contornos y fondos suaves
 
-Acción         #C24D68   botones, chips activos, enlaces, progreso
-Acción fuerte  #A83F57   hover del primario
+Acción         #C8446A   botones, chips activos, enlaces, progreso
+Acción fuerte  #AB375A   hover del primario
 Acción tinta   #9C3A51   texto de acción sobre superficie clara
 
 Fondo          #F2ECE9   neutral cálido, nunca gris frío
@@ -193,7 +193,7 @@ Línea          #EDE4E1   divisor interno de listas
 Título         #3A1A20
 Texto          #2A1418
 Texto suave    #6E555A   secundario
-Tenue          #9A7F84   versalitas y metadatos
+Tenue          #7D6469   versalitas y metadatos
 
 Riesgo alto    #C1121F   escalar ahora
 Riesgo medio   #C97A05   revisar hoy
@@ -220,9 +220,14 @@ panel 13.5/400, etiqueta 11/600 con tracking 0.18em en versalitas. La cifra clí
 temperaturas, porcentajes, códigos de caso.
 
 **Espaciado, bordes y superficies.** Múltiplos de 4. Bordes de 1px. Radios: 4 sm, 8 md
-(botones, chips, campos), 10 lg (tarjetas y filas), 999 en píldoras. **No hay sistema de
-sombras: ninguna sombra, ni interior ni exterior.** La jerarquía de superficie se hace con el
-valor del fondo: fondo → superficie → superficie alta.
+(botones, chips, campos), 10 lg (tarjetas y filas), 999 en píldoras. La jerarquía de superficie
+se hace con el valor del fondo: fondo → superficie → superficie alta.
+
+**Sombras: solo en el hilo.** El sistema nació sin ninguna, y en el panel clínico sigue sin
+tenerlas —ahí manda el valor del fondo y punto. La excepción es la conversación: la burbuja
+blanca del agente sobre la superficie del teléfono no se despegaba, así que el hilo, las píldoras
+de sugerencia y el campo de escribir usan `--sombra-1` y `--sombra-2`. Están construidas con la
+tinta del título y no con negro: una sombra gris sobre un neutral cálido se lee sucia.
 
 **Elemento firma — la franja de 42 días.** Cada puérpera lleva una franja horizontal de 42
 celdas con tres estados que no son intercambiables: celda en color (hubo contacto y esa fue la
@@ -240,14 +245,23 @@ desvanezca para ver lo siguiente es tiempo regalado. **Sin spinners:** en una he
 se leen como caída, el estado de espera es texto ("Leyendo lo que me contaste…", "Evaluando…").
 Todo respeta `prefers-reduced-motion`.
 
-Sin gradientes, sin sombras difusas, sin blur, sin emojis, sin ilustraciones, sin fotografía.
+Sin gradientes, sin blur, sin emojis, sin ilustraciones, sin fotografía.
+
+**Contraste.** Todo texto cumple WCAG AA: 4.5:1 mínimo, y casi toda la tinta del sistema es de 11
+a 13 px, así que no hay excepción de "texto grande" que aplique. Antes de bajar un tono o subir un
+color de fondo, calcula el contraste — `--color-tenue` estuvo en 3.46:1 durante un tiempo y dejaba
+ilegibles todas las versalitas y metadatos de la app.
 
 **Fondos: color plano, con una excepción acotada.** El lado de la puérpera se muestra como lo que
-es —un teléfono—: la columna va enmarcada al centro (`.telefono`, borde 1px, radio 22) y lo que
-sobra a los lados es `#1B1016` con un motivo de ondas al 10 % en rojo 300 (`.ondas`). Las ondas son
-la franja de 42 días estirada y repetida, y están al borde de lo invisible a propósito: tienen que
-leerse como textura del fondo, nunca como contenido. **En el panel clínico no entra ningún
-patrón** — ahí manda el color plano y punto.
+es —un teléfono—: la columna va enmarcada al centro (`.telefono`, borde 1px, radio 22, superficie
+casi blanca) y lo que sobra a los lados es un crema `#E6DBD6` con el motivo del partograma
+(`.ondas`): la recta de la línea de alerta y, rezagada bajo ella, la curva de dilatación. Va en el
+rosa de acción al 7–11 % y está al borde de lo invisible a propósito: es textura del fondo, nunca
+contenido. **Fondo claro y no oscuro** — esta pantalla acompaña a alguien que acaba de parir y
+tiene que transmitir calma, no gravedad. **En el panel clínico no entra ningún patrón.**
+
+**La franja de 42 días no va en la cabecera del chat de ella.** Ahí era decoración: ella la tiene
+completa, con su leyenda y sus cifras, en "Cómo he estado". En su chat manda el número del día.
 
 **Iconos.** `src/components/Iconos.tsx`, dibujados para Matria: trazo de 1.5, esquinas redondas,
 `currentColor` y sin relleno. Heredan la tinta de quien los contiene, así que **nunca introducen

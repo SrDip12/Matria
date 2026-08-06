@@ -101,6 +101,15 @@ export function IconoVolver(props: IconoProps) {
   );
 }
 
+/** Inicio: la puerta, cuando todavía no se eligió desde dónde mirar. */
+export function IconoInicio(props: IconoProps) {
+  return (
+    <Trazo {...props}>
+      <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" />
+    </Trazo>
+  );
+}
+
 /** Cambiar de vista. */
 export function IconoCambiar(props: IconoProps) {
   return (
